@@ -27,6 +27,16 @@ export const TheatreMode: React.FC = () => {
   const [dialMonth, setDialMonth] = useState('01');
   const [dialDay, setDialDay] = useState('01');
 
+  // Local state for Gears Alignment Puzzle
+  const [gearLeftClicks, setGearLeftClicks] = useState(0);
+  const [gearRightClicks, setGearRightClicks] = useState(0);
+
+  // Reset gears clicks when active test index shifts
+  useEffect(() => {
+    setGearLeftClicks(0);
+    setGearRightClicks(0);
+  }, [activeSimulation?.currentTestIndex]);
+
   // CCTV timestamp tick
   useEffect(() => {
     const updateCctv = () => {
@@ -36,6 +46,11 @@ export const TheatreMode: React.FC = () => {
     updateCctv();
     const interval = setInterval(updateCctv, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Play puppet laughter on mount to welcome the player
+  useEffect(() => {
+    sound.playBillyLaughter();
   }, []);
 
   // Keyboard shortcuts listener
@@ -622,6 +637,135 @@ export const TheatreMode: React.FC = () => {
                             CALIBRATE SCALES BALANCE
                           </button>
                           {puzzleAttempts > 0 && <span className="text-terminal-red text-[9px] font-bold uppercase animate-pulse text-center block mt-1">! DEFICIT BALANCE ENCOUNTERED - ESCAPE ROUTE SECURED</span>}
+                        </div>
+                      )}
+
+                      {currentTest?.puzzleType === 'maze' && (
+                        <div className="flex flex-col gap-3">
+                          {/* Gears rotation alignment rendering */}
+                          <div className="flex justify-center items-center gap-6 my-2 select-none">
+                            <div className="flex flex-col items-center gap-2">
+                              <span className="text-[8px] text-c4cdc4/55 font-bold uppercase">LEFT DRIVE SHAFT</span>
+                              <svg width="90" height="90" viewBox="0 0 100 100" style={{ transform: `rotate(${gearLeftClicks * 45}deg)`, transition: 'transform 0.2s ease-out' }}>
+                                <circle cx="50" cy="50" r="30" fill="#1b1c1b" stroke="#39ff14" strokeWidth="2" />
+                                {/* Gear Teeth */}
+                                {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
+                                  <rect
+                                    key={angle}
+                                    x="46"
+                                    y="10"
+                                    width="8"
+                                    height="15"
+                                    fill="#39ff14"
+                                    transform={`rotate(${angle} 50 50)`}
+                                  />
+                                ))}
+                                <circle cx="50" cy="50" r="10" fill="#000" stroke="#39ff14" strokeWidth="1" />
+                                <line x1="50" y1="50" x2="50" y2="25" stroke="#ff3914" strokeWidth="2.5" />
+                              </svg>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  sound.playClick();
+                                  setGearLeftClicks(prev => (prev + 1) % 8);
+                                }}
+                                className="px-3 py-1 border border-terminal-green bg-terminal-green/5 text-terminal-green hover:bg-terminal-green hover:text-black font-bold text-[9px] rounded cursor-pointer"
+                              >
+                                ROTATE (+3)
+                              </button>
+                            </div>
+
+                            <div className="flex flex-col items-center gap-2">
+                              <span className="text-[8px] text-c4cdc4/55 font-bold uppercase">RIGHT DRIVE SHAFT</span>
+                              <svg width="90" height="90" viewBox="0 0 100 100" style={{ transform: `rotate(${gearRightClicks * 60}deg)`, transition: 'transform 0.2s ease-out' }}>
+                                <circle cx="50" cy="50" r="25" fill="#1b1c1b" stroke="#39ff14" strokeWidth="2" />
+                                {/* Gear Teeth */}
+                                {[0, 60, 120, 180, 240, 300].map((angle) => (
+                                  <rect
+                                    key={angle}
+                                    x="47"
+                                    y="15"
+                                    width="6"
+                                    height="12"
+                                    fill="#39ff14"
+                                    transform={`rotate(${angle} 50 50)`}
+                                  />
+                                ))}
+                                <circle cx="50" cy="50" r="8" fill="#000" stroke="#39ff14" strokeWidth="1" />
+                                <line x1="50" y1="50" x2="50" y2="28" stroke="#ff3914" strokeWidth="2" />
+                              </svg>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  sound.playClick();
+                                  setGearRightClicks(prev => (prev + 1) % 6);
+                                }}
+                                className="px-3 py-1 border border-terminal-green bg-terminal-green/5 text-terminal-green hover:bg-terminal-green hover:text-black font-bold text-[9px] rounded cursor-pointer"
+                              >
+                                ROTATE (+2)
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Gears target output status */}
+                          <div className="bg-black/60 border border-terminal-metal p-3 rounded flex justify-between items-center select-none font-mono">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[8px] text-c4cdc4/50 font-bold uppercase">Alignment ratio</span>
+                              <span className={`text-xs font-bold ${gearLeftClicks * 3 + gearRightClicks * 2 === 15 ? 'text-terminal-green' : 'text-terminal-red'}`}>
+                                {gearLeftClicks * 3 + gearRightClicks * 2} / 15 index
+                              </span>
+                            </div>
+                            <span className="text-[9px] text-c4cdc4/40 uppercase">Target: Gear alignment matches marker</span>
+                          </div>
+
+                          <button
+                            onClick={() => submitPuzzleAnswer(String(gearLeftClicks * 3 + gearRightClicks * 2))}
+                            className="w-full bg-terminal-green border border-terminal-green text-black hover:bg-transparent hover:text-terminal-green py-2 font-bold font-mono rounded cursor-pointer transition-colors text-center text-xs select-none"
+                          >
+                            DISARM REVERSE BEAR LOCKWAY
+                          </button>
+                          {puzzleAttempts > 0 && <span className="text-terminal-red text-[9px] font-bold uppercase animate-pulse text-center block mt-1">! GEAR PRESSURE CRITICAL - LOCKWAY MISALIGNED</span>}
+                        </div>
+                      )}
+
+                      {currentTest?.puzzleType === 'choice' && (
+                        <div className="flex flex-col gap-3">
+                          <span className="text-[8.5px] text-c4cdc4/50 font-bold uppercase select-none">BATHROOM FLOOR COORDINATE SCANNER:</span>
+                          
+                          <div className="grid grid-cols-3 gap-3 my-2 select-none">
+                            {['A-1', 'A-2', 'A-3', 'B-1', 'B-2', 'B-3', 'C-1', 'C-2', 'C-3'].map((tile) => {
+                              const isSelected = puzzleInput === tile;
+                              return (
+                                <button
+                                  key={tile}
+                                  onClick={() => {
+                                    sound.playClick();
+                                    setPuzzleInput(tile);
+                                  }}
+                                  className={`p-4 border rounded font-mono text-center font-bold transition-all cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-terminal-green/10 border-terminal-green text-terminal-green shadow-[0_0_10px_rgba(57,255,20,0.2)]'
+                                      : 'bg-black/40 border-terminal-metal text-c4cdc4/60 hover:text-white hover:border-terminal-green/50'
+                                  }`}
+                                >
+                                  {tile}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <button
+                            disabled={!puzzleInput}
+                            onClick={() => submitPuzzleAnswer(puzzleInput)}
+                            className={`w-full py-2 font-bold font-mono rounded transition-colors text-center text-xs select-none ${
+                              puzzleInput
+                                ? 'bg-terminal-green border border-terminal-green text-black hover:bg-transparent hover:text-terminal-green cursor-pointer'
+                                : 'bg-terminal-metal border border-terminal-metal-light text-c4cdc4/25 cursor-not-allowed'
+                            }`}
+                          >
+                            SCAN SELECTED COORDINATE TILE
+                          </button>
+                          {puzzleAttempts > 0 && <span className="text-terminal-red text-[9px] font-bold uppercase animate-pulse text-center block mt-1">! SCAN EMPTY - STEAM VENT DISCHARGE DETECTED</span>}
                         </div>
                       )}
                     </div>

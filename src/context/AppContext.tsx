@@ -105,6 +105,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     db.initializeDB();
     addLog("SYSTEM: Local vault database layers loaded.");
+    addLog("LORE: Loaded canon continuity timeline database (5 distinct eras parsed).");
+    addLog("LORE: Warning - Retcon detected in Logan Nelson files (2017 Jigsaw script).");
+    addLog("LORE: Warning - Mexico interquel gap calibrated (Saw X timeline matched).");
     
     // Restore active simulation if it exists
     const savedSim = localStorage.getItem('jigsaw_active_sim');

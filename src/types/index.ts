@@ -9,7 +9,7 @@ export interface UserSettings {
 export interface LoreEvent {
   id: string;
   title: string;
-  period: 'pre-saw-i' | 'saw-i' | 'saw-x-interquel' | 'saw-i-ii-interval' | 'saw-ii' | 'saw-iii-iv' | 'posthumous' | 'apprentice-arcs' | 'fan-campaigns';
+  period: 'pre-saw-i' | 'saw-i' | 'saw-x-interquel' | 'saw-i-ii-interval' | 'saw-ii' | 'saw-iii-iv' | 'posthumous' | 'apprentice-arcs' | 'legacy-era' | 'fan-campaigns';
   summary: string;
   canonStatus: 'canon' | 'fanon' | 'custom';
   relatedCharacters: string[];

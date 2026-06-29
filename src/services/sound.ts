@@ -271,3 +271,46 @@ export function stopTapeHum(): void {
     tapeNoiseNode = null;
   }
 }
+
+/**
+ * Synthesizes Billy the Puppet's iconic mechanical laughter
+ */
+export function playBillyLaughter(): void {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioContext();
+    const startTime = ctx.currentTime;
+    
+    // Play 5 laughter bursts "ha-ha-ha-ha-ha"
+    for (let i = 0; i < 5; i++) {
+      const burstTime = startTime + i * 0.16;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      
+      osc.type = 'sawtooth';
+      // Descending pitch within each burst for that voice-like quality
+      osc.frequency.setValueAtTime(320 - i * 15, burstTime); 
+      osc.frequency.exponentialRampToValueAtTime(140 - i * 15, burstTime + 0.12);
+      
+      // Bandpass filter to isolate vocal formants (resembles a hollow speaker laugh)
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(550, burstTime);
+      filter.Q.setValueAtTime(4.0, burstTime);
+      
+      // Gain envelope for quick decay
+      gain.gain.setValueAtTime(0, burstTime);
+      gain.gain.linearRampToValueAtTime(0.04, burstTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, burstTime + 0.14);
+      
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start(burstTime);
+      osc.stop(burstTime + 0.15);
+    }
+  } catch (e) {
+    console.error('Audio laughter synthesis failed', e);
+  }
+}

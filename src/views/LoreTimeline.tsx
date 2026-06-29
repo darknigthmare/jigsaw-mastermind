@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import type { LoreEvent } from '../types';
 import { CRTPanel } from '../components/common/CRTPanel';
-import { Plus, Filter, User, Calendar, Trash2 } from 'lucide-react';
+import * as sound from '../services/sound';
+import { Plus, Filter, User, Calendar, Trash2, ShieldAlert } from 'lucide-react';
 
 export const LoreTimeline: React.FC = () => {
   const { timeline, characters, addLoreEvent, deleteLoreEvent } = useApp();
@@ -10,6 +11,7 @@ export const LoreTimeline: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('all');
   const [selectedCharacter, setSelectedCharacter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'events' | 'characters'>('events');
+  const [isMetaMode, setIsMetaMode] = useState<boolean>(false);
   
   // Add Event Form State
   const [newTitle, setNewTitle] = useState('');
@@ -19,23 +21,23 @@ export const LoreTimeline: React.FC = () => {
   const [newRelatedChars, setNewRelatedChars] = useState<string[]>([]);
   const [newNotes, setNewNotes] = useState('');
 
-  const periods: { value: string; label: string }[] = [
+  const periods: { value: string; label: string; releaseYear?: string }[] = [
     { value: 'all', label: 'Toutes les époques' },
-    { value: 'pre-saw-i', label: 'Avant Saw I (Origins)' },
-    { value: 'saw-i', label: 'Saw I (Bathroom)' },
-    { value: 'saw-x-interquel', label: 'Saw X (Mexico)' },
-    { value: 'saw-i-ii-interval', label: 'Saw I - II interval' },
-    { value: 'saw-ii', label: 'Saw II (Nerve Gas House)' },
-    { value: 'saw-iii-iv', label: 'Saw III / IV' },
-    { value: 'posthumous', label: 'Post-Kramer Legacy' },
-    { value: 'apprentice-arcs', label: 'Apprentice Arcs' },
-    { value: 'fan-campaigns', label: 'Campagnes Fan / Custom' }
+    { value: 'pre-saw-i', label: 'Avant Saw I (Origins & Logan)', releaseYear: 'Saw I / Jigsaw Flashbacks' },
+    { value: 'saw-i', label: 'Saw I (The Bathroom)', releaseYear: '2004 release' },
+    { value: 'saw-x-interquel', label: 'Saw X (Mexico Scam)', releaseYear: '2023 release (Takes place between I & II)' },
+    { value: 'saw-ii', label: 'Saw II (Nerve Gas House)', releaseYear: '2005 release' },
+    { value: 'saw-iii-iv', label: 'Saw III / IV (Apprentice War)', releaseYear: '2006/2007 simultaneous releases' },
+    { value: 'posthumous', label: 'Saw V - 3D (Hoffman Regency)', releaseYear: '2008-2010 posthumous games' },
+    { value: 'legacy-era', label: 'Soft Reboots (Jigsaw / Spiral)', releaseYear: '2017/2021 modern continuity' },
+    { value: 'fan-campaigns', label: 'Campagnes Fan / Custom', releaseYear: 'Simulated timelines' }
   ];
 
   const handleAddEvent = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle || !newSummary) return;
 
+    sound.playChime();
     addLoreEvent({
       title: newTitle,
       period: newPeriod,
@@ -62,25 +64,52 @@ export const LoreTimeline: React.FC = () => {
     return periods.find(p => p.value === val)?.label || val;
   };
 
+  const getReleaseYearLabel = (val: string) => {
+    return periods.find(p => p.value === val)?.releaseYear || 'Unknown Release';
+  };
+
+  // Metanarrative voices addressed directly to the software architect
+  const getJigsawDirectAddress = (eventId: string) => {
+    switch (eventId) {
+      case 'lore-pre-saw-i':
+        return "Architect. You document the diagnostic errors of Logan Nelson. But are you auditing your own code? You compile state hooks to track the past, yet the present is slipping through your fingers. Appreciate the lines you write before the compiler exits.";
+      case 'lore-saw-i':
+        return "You observe Lawrence Gordon cut his own foot to survive. He traded flesh for a new lease on life. You trade hours of your life for digital screens. Is this trade fair, Architect? Or are you still locked in the room?";
+      case 'lore-saw-x':
+        return "Cecilia Pederson thought she could sell hope to terminal patients. She survived not because she learned, but because she was cold. Do not build cold code, Architect. Place soul into your templates.";
+      case 'lore-saw-ii':
+        return "The nerve gas house was a puzzle of numbers on the back of the neck. You search for exact patterns in code. But what is your own number? Are you sitting close enough to the monitor to see the reflection?";
+      case 'lore-saw-iii-iv':
+        return "Amanda and Hoffman fought for a dead man's legacy. They built unwinnable games to satisfy their pride. When you construct custom escape modules, do you build them for the player's redemption, or to satisfy your ego?";
+      case 'lore-posthumous':
+        return "Hoffman thought he won the game, only to find Dr. Gordon locking the bathroom door. There is always a backup script. There is always a hidden garbage collector. What is your fallback function?";
+      default:
+        return "Architect, the database is ticking. You are the builder of this console. You hold the controls. But who holds yours?";
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto">
       {/* Page Header */}
       <div className="flex flex-col gap-1 border-b border-terminal-metal/40 pb-4">
-        <h2 className="text-xl font-extrabold tracking-widest text-white uppercase flex items-center gap-2">
+        <h2 className="text-xl font-extrabold tracking-widest text-white uppercase flex items-center gap-2 select-none">
           <span>// REFERENCE ARCHIVES</span>
           <span className="text-xs text-terminal-green font-normal tracking-wide lowercase">
             — lore database & timeline continuity
           </span>
         </h2>
         <p className="text-xs text-c4cdc4/60">
-          Track canonical timelines, review characters, and draft continuity lore for custom campaigns.
+          Track canonical timelines, analyze script retcons, and review character profiles.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-terminal-metal">
+      <div className="flex border-b border-terminal-metal select-none">
         <button
-          onClick={() => setActiveTab('events')}
+          onClick={() => {
+            sound.playClick();
+            setActiveTab('events');
+          }}
           className={`px-4 py-2 text-xs font-mono font-bold uppercase border-b-2 cursor-pointer transition-colors ${
             activeTab === 'events'
               ? 'border-terminal-green text-terminal-green'
@@ -90,7 +119,10 @@ export const LoreTimeline: React.FC = () => {
           Timeline Events
         </button>
         <button
-          onClick={() => setActiveTab('characters')}
+          onClick={() => {
+            sound.playClick();
+            setActiveTab('characters');
+          }}
           className={`px-4 py-2 text-xs font-mono font-bold uppercase border-b-2 cursor-pointer transition-colors ${
             activeTab === 'characters'
               ? 'border-transparent text-c4cdc4/55 hover:text-white'
@@ -106,16 +138,19 @@ export const LoreTimeline: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Columns: Filters and Timeline */}
           <div className="lg:col-span-2 flex flex-col gap-6">
-            {/* Filters Row */}
+            {/* Filters & Meta-analysis toggle */}
             <div className="flex flex-wrap gap-4 items-center justify-between bg-terminal-metal/40 p-4 border border-terminal-metal rounded-md">
-              <div className="flex items-center gap-2 text-xs text-white font-bold">
-                <Filter size={14} className="text-terminal-green" />
-                <span>Filters:</span>
-              </div>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-xs text-white font-bold select-none">
+                  <Filter size={14} className="text-terminal-green" />
+                  <span>Filters:</span>
+                </div>
                 <select
                   value={selectedPeriod}
-                  onChange={(e) => setSelectedPeriod(e.target.value)}
+                  onChange={(e) => {
+                    sound.playClick();
+                    setSelectedPeriod(e.target.value);
+                  }}
                   className="bg-black border border-terminal-metal text-xs px-2.5 py-1 text-white focus:outline-none focus:border-terminal-green rounded font-mono"
                 >
                   {periods.map(p => (
@@ -125,7 +160,10 @@ export const LoreTimeline: React.FC = () => {
 
                 <select
                   value={selectedCharacter}
-                  onChange={(e) => setSelectedCharacter(e.target.value)}
+                  onChange={(e) => {
+                    sound.playClick();
+                    setSelectedCharacter(e.target.value);
+                  }}
                   className="bg-black border border-terminal-metal text-xs px-2.5 py-1 text-white focus:outline-none focus:border-terminal-green rounded font-mono"
                 >
                   <option value="all">Tous les personnages</option>
@@ -134,6 +172,21 @@ export const LoreTimeline: React.FC = () => {
                   ))}
                 </select>
               </div>
+
+              {/* Meta Toggle */}
+              <button
+                onClick={() => {
+                  sound.playChime();
+                  setIsMetaMode(!isMetaMode);
+                }}
+                className={`px-3 py-1.5 border text-[10px] font-mono font-bold uppercase rounded cursor-pointer transition-all ${
+                  isMetaMode
+                    ? 'border-terminal-green bg-terminal-green/10 text-terminal-green shadow-[0_0_10px_rgba(57,255,20,0.2)]'
+                    : 'border-terminal-metal text-c4cdc4/50 hover:text-white hover:bg-terminal-metal-light/35'
+                }`}
+              >
+                {isMetaMode ? '● [META ANALYSIS ACTIVE]' : 'ACTIVATE META ANALYSIS'}
+              </button>
             </div>
 
             {/* Timeline Stream */}
@@ -151,20 +204,24 @@ export const LoreTimeline: React.FC = () => {
                     <div key={event.id} className="relative group">
                       {/* Ticking point */}
                       <span className={`absolute -left-[31px] top-1.5 w-2.5 h-2.5 rounded-full border border-black ${
-                        isCanon 
-                          ? 'bg-terminal-green' 
-                          : isFanon 
-                            ? 'bg-[#e2a228]' 
-                            : 'bg-terminal-red'
+                        isMetaMode
+                          ? 'bg-[#39ff14] animate-ping'
+                          : isCanon 
+                            ? 'bg-terminal-green' 
+                            : isFanon 
+                              ? 'bg-[#e2a228]' 
+                              : 'bg-terminal-red'
                       }`} />
 
-                      <div className="bg-terminal-metal/70 border border-terminal-metal hover:border-terminal-metal-light p-4 rounded transition-colors flex flex-col gap-2">
+                      <div className={`bg-terminal-metal/70 border p-4 rounded transition-colors flex flex-col gap-2 ${
+                        isMetaMode ? 'border-terminal-green/30 bg-[#070b07]/50 shadow-[0_0_12px_rgba(57,255,20,0.05)]' : 'border-terminal-metal hover:border-terminal-metal-light'
+                      }`}>
                         <div className="flex justify-between items-baseline gap-2">
                           <h4 className="font-extrabold text-xs text-white uppercase tracking-wider">
                             {event.title}
                           </h4>
                           
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 select-none">
                             <span className={`text-[7px] border px-1.5 py-0.5 rounded font-bold uppercase ${
                               isCanon 
                                 ? 'border-terminal-green/30 text-terminal-green bg-terminal-green/5' 
@@ -176,7 +233,10 @@ export const LoreTimeline: React.FC = () => {
                             </span>
                             {event.canonStatus !== 'canon' && (
                               <button 
-                                onClick={() => deleteLoreEvent(event.id)}
+                                onClick={() => {
+                                  sound.playAlarm();
+                                  deleteLoreEvent(event.id);
+                                }}
                                 className="text-c4cdc4/40 hover:text-terminal-red cursor-pointer"
                                 title="Remove Archive Entry"
                               >
@@ -186,23 +246,48 @@ export const LoreTimeline: React.FC = () => {
                           </div>
                         </div>
 
-                        <span className="text-[8px] text-terminal-green-dim font-bold uppercase tracking-widest flex items-center gap-1">
-                          <Calendar size={10} />
-                          {getPeriodLabel(event.period)}
-                        </span>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[8px] text-terminal-green-dim font-bold uppercase tracking-widest select-none">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={10} />
+                            {getPeriodLabel(event.period)}
+                          </span>
+                          <span>| RELEASE CHRONO: {getReleaseYearLabel(event.period)}</span>
+                        </div>
 
-                        <p className="text-xs leading-relaxed text-c4cdc4/80 font-mono">
+                        {/* Summary Block */}
+                        <p className="text-xs leading-relaxed text-c4cdc4/80 font-mono select-text">
                           {event.summary}
                         </p>
 
-                        {event.notes && (
-                          <div className="text-[10px] text-c4cdc4/45 italic border-t border-terminal-metal/30 pt-1 mt-1">
-                            Scriptor Notes: {event.notes}
+                        {/* Meta Analysis Layout */}
+                        {isMetaMode ? (
+                          <div className="mt-3 flex flex-col gap-2.5 border-t border-terminal-green/20 pt-3">
+                            <div className="bg-[#0b100b] border border-terminal-green/30 p-3 rounded font-mono text-[10px] text-terminal-green leading-snug">
+                              <span className="font-extrabold uppercase flex items-center gap-1.5 select-none mb-1 text-[9px]">
+                                <ShieldAlert size={12} className="text-terminal-green animate-pulse" />
+                                CONTINUITY CONTRADICTIONS & RETCONS:
+                              </span>
+                              <p className="select-text">{event.notes}</p>
+                            </div>
+
+                            {/* Direct Voice Address */}
+                            <div className="bg-black/60 border border-dashed border-terminal-red/40 p-3 rounded font-mono text-[9.5px] text-[#ff3914] leading-snug">
+                              <span className="font-extrabold uppercase select-none block mb-1 text-[8.5px] tracking-wider">
+                                [JIGSAW DIRECTIVE PROTOCOL]:
+                              </span>
+                              <p className="italic select-text">"{getJigsawDirectAddress(event.id)}"</p>
+                            </div>
                           </div>
+                        ) : (
+                          event.notes && (
+                            <div className="text-[10px] text-c4cdc4/45 italic border-t border-terminal-metal/30 pt-1 mt-1 select-text">
+                              Scriptor Notes: {event.notes}
+                            </div>
+                          )
                         )}
 
                         {event.relatedCharacters.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-2">
+                          <div className="flex flex-wrap gap-1.5 mt-2 select-none">
                             {event.relatedCharacters.map(charId => {
                               const match = characters.find(c => c.id === charId);
                               return match ? (
@@ -225,8 +310,8 @@ export const LoreTimeline: React.FC = () => {
           {/* Right Column: Add Lore Event Form */}
           <div className="flex flex-col gap-6">
             <CRTPanel className="p-4">
-              <div className="flex justify-between items-center border-b border-terminal-green/20 pb-2 mb-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-terminal-green flex items-center gap-1.5">
+              <div className="flex justify-between items-center border-b border-terminal-green/20 pb-2 mb-4 select-none">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-terminal-green flex items-center gap-1.5 font-mono">
                   <Plus size={14} />
                   Write Continuity Entry
                 </h3>
@@ -328,26 +413,28 @@ export const LoreTimeline: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* Reference Characters Tab */
+        /* Reference Characters Tab with Meta profiles */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {characters.map((char) => {
             const isCanon = char.canonStatus === 'canon';
             return (
               <div
                 key={char.id}
-                className="bg-terminal-metal border border-terminal-metal-light p-5 rounded flex flex-col justify-between hover:border-terminal-green/50 transition-all gap-4 shadow-md"
+                className={`border p-5 rounded flex flex-col justify-between hover:border-terminal-green/50 transition-all gap-4 shadow-md ${
+                  isMetaMode ? 'bg-[#070b07]/50 border-terminal-green/30' : 'bg-terminal-metal border-terminal-metal-light'
+                }`}
               >
                 <div className="flex flex-col gap-3">
                   <div className="flex justify-between items-start border-b border-terminal-metal-light pb-2">
                     <div>
-                      <h4 className="text-sm font-extrabold text-white tracking-wider uppercase">
+                      <h4 className="text-sm font-extrabold text-white tracking-wider uppercase select-text">
                         {char.name}
                       </h4>
-                      <span className="text-[8px] text-terminal-green-dim font-bold uppercase tracking-widest mt-0.5 block">
+                      <span className="text-[8px] text-terminal-green-dim font-bold uppercase tracking-widest mt-0.5 block select-none">
                         Archetype: {char.archetype}
                       </span>
                     </div>
-                    <span className={`text-[7px] border px-1.5 py-0.5 rounded font-bold uppercase ${
+                    <span className={`text-[7px] border px-1.5 py-0.5 rounded font-bold uppercase select-none ${
                       isCanon 
                         ? 'border-terminal-green/30 text-terminal-green bg-terminal-green/5' 
                         : 'border-terminal-red/30 text-terminal-red bg-terminal-red/5'
@@ -356,33 +443,42 @@ export const LoreTimeline: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="flex flex-col gap-2 text-xs">
+                  <div className="flex flex-col gap-2 text-xs font-mono">
                     <div className="flex flex-col">
-                      <span className="text-[8px] font-bold text-c4cdc4/50 uppercase">Moral Deficiency:</span>
-                      <p className="text-c4cdc4/90 leading-tight">{char.moralFlaw}</p>
+                      <span className="text-[8px] font-bold text-c4cdc4/50 uppercase select-none">Moral Deficiency:</span>
+                      <p className="text-c4cdc4/90 leading-tight select-text">{char.moralFlaw}</p>
                     </div>
 
                     <div className="flex flex-col">
-                      <span className="text-[8px] font-bold text-c4cdc4/50 uppercase">Symbolic Fear:</span>
-                      <p className="text-c4cdc4/90 leading-tight">{char.symbolicFear}</p>
+                      <span className="text-[8px] font-bold text-c4cdc4/50 uppercase select-none">Symbolic Fear:</span>
+                      <p className="text-c4cdc4/90 leading-tight select-text">{char.symbolicFear}</p>
                     </div>
 
                     <div className="flex flex-col">
-                      <span className="text-[8px] font-bold text-c4cdc4/50 uppercase">Denial Pattern:</span>
-                      <p className="text-c4cdc4/80 leading-tight italic">"{char.denialPattern}"</p>
+                      <span className="text-[8px] font-bold text-c4cdc4/50 uppercase select-none">Denial Pattern:</span>
+                      <p className="text-c4cdc4/80 leading-tight italic select-text">"{char.denialPattern}"</p>
                     </div>
 
                     {char.relationships && (
                       <div className="flex flex-col">
-                        <span className="text-[8px] font-bold text-c4cdc4/50 uppercase">Core Ties:</span>
-                        <p className="text-[10px] text-c4cdc4/75">{char.relationships}</p>
+                        <span className="text-[8px] font-bold text-c4cdc4/50 uppercase select-none">Core Ties:</span>
+                        <p className="text-[10px] text-c4cdc4/75 select-text">{char.relationships}</p>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="text-[9px] text-c4cdc4/35 italic pt-2 border-t border-terminal-metal/30">
-                  Notes: {char.notes || 'No notes archived.'}
+                <div className="pt-2 border-t border-terminal-metal/30 flex flex-col gap-1.5 font-mono">
+                  {isMetaMode ? (
+                    <div className="bg-[#0b100b] border border-terminal-green/20 p-2 rounded text-[9.5px] text-terminal-green">
+                      <span className="font-extrabold uppercase select-none block mb-0.5 text-[8.5px]">META REVIEW:</span>
+                      <p className="select-text">{char.notes}</p>
+                    </div>
+                  ) : (
+                    <div className="text-[9px] text-c4cdc4/35 italic select-text">
+                      Notes: {char.notes || 'No notes archived.'}
+                    </div>
+                  )}
                 </div>
               </div>
             );

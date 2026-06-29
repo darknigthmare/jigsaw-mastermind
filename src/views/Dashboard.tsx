@@ -170,6 +170,26 @@ export const Dashboard: React.FC = () => {
             </div>
           </CRTPanel>
 
+          {/* Canonical Jigsaw Signature Panel */}
+          <CRTPanel className="p-4 flex flex-col gap-2 bg-[#090b09]/40 border border-terminal-green/30">
+            <span className="text-[8px] text-terminal-green-dim font-bold uppercase tracking-widest select-none">
+              // JIGSAW INTEGRITY MARKS
+            </span>
+            <div className="font-mono text-[7px] leading-[1.1] text-terminal-green/75 select-none whitespace-pre overflow-x-auto text-center py-1">
+{`      ___
+     /   \\
+ ___/     \\___
+/             \\
+\\___       ___/
+    \\     /
+     \\___/`}
+            </div>
+            <div className="text-[8.5px] text-c4cdc4/55 font-mono leading-tight select-text">
+              <span className="text-terminal-green font-bold uppercase block mb-1">THE MISSING PIECE:</span>
+              "When a subject fails, a puzzle-shaped piece of skin is removed. It represents their missing survival instinct, not malice."
+            </div>
+          </CRTPanel>
+
           {/* Recent Runs Logs */}
           <div className="flex flex-col gap-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-white border-l-2 border-terminal-red pl-2">
