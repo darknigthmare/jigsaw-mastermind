@@ -1,4 +1,4 @@
-﻿import type { Campaign, CharacterProfile, SymbolicTest, LoreEvent } from '../types';
+import type { Campaign, CharacterProfile, SymbolicTest, LoreEvent } from '../types';
 
 export const PRELOADED_CHARACTERS: CharacterProfile[] = [
   {
@@ -176,6 +176,118 @@ export const PRELOADED_CHARACTERS: CharacterProfile[] = [
     notes: 'Antagonist tested in Mexico.',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'canon-adam-stanheight',
+    name: 'Adam Stanheight',
+    role: 'Photographer / First Victim',
+    archetype: 'The Passive Observer',
+    timelinePeriod: 'saw-i',
+    moralFlaw: 'Taking paid under-the-table photos of others, hiding behind his lens.',
+    symbolicFear: 'Being observed and forgotten in the dark.',
+    redemptionGoal: 'Escape chains by cooperating and finding key.',
+    denialPattern: 'Claims "I just take the pictures, I don\'t make the news."',
+    relationships: 'Dr. Lawrence Gordon (fellow captive), John Kramer (captor)',
+    canonStatus: 'canon',
+    notes: 'Adam is the classic counterweight to Dr. Gordon. He is left to die in the bathroom.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'canon-eric-matthews',
+    name: 'Eric Matthews',
+    role: 'Police Detective',
+    archetype: 'The Violent Cop',
+    timelinePeriod: 'saw-ii',
+    moralFlaw: 'Falsifying evidence and brutalizing suspects.',
+    symbolicFear: 'Losing control and being helpless to save his son.',
+    redemptionGoal: 'Patience and negotiation with Kramer.',
+    denialPattern: 'Believes physical force is the only way to get answers.',
+    relationships: 'Daniel Matthews (son), Amanda Young (captor)',
+    canonStatus: 'canon',
+    notes: 'Main target of Saw II, tested in the Bathroom in Saw III, dies in Saw IV.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'canon-daniel-rigg',
+    name: 'SWAT Commander',
+    role: 'Officer Daniel Rigg',
+    archetype: 'The Obsessive Savior',
+    timelinePeriod: 'saw-iii-iv',
+    moralFlaw: 'Inability to let others save themselves, saving people who don\'t want to be saved.',
+    symbolicFear: 'Failing to protect his team and friends.',
+    redemptionGoal: 'Learn to wait and let the clock run out.',
+    denialPattern: 'Insists "I have to save them, it\'s my job."',
+    relationships: 'Eric Matthews (friend), Detective Hoffman (friend/adversary)',
+    canonStatus: 'canon',
+    notes: 'Tested throughout the city in Saw IV.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'canon-peter-strahm',
+    name: 'Peter Strahm',
+    role: 'FBI Special Agent',
+    archetype: 'The Untrusting Investigator',
+    timelinePeriod: 'saw-v',
+    moralFlaw: 'Single-minded obsession with hunting Jigsaw accomplices, ignoring warnings.',
+    symbolicFear: 'Being trapped and crushed by the system.',
+    redemptionGoal: 'Trust Jigsaw\'s final tape warning and enter the glass coffin.',
+    denialPattern: 'Convinced Hoffman is a simple target he can take down alone.',
+    relationships: 'Lindsey Perez (partner), Detective Hoffman (target)',
+    canonStatus: 'canon',
+    notes: 'Tested in the water cube, crushed in the compaction room.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'canon-william-easton',
+    name: 'William Easton',
+    role: 'Insurance Executive',
+    archetype: 'The Cold Actuary',
+    timelinePeriod: 'saw-vi',
+    moralFlaw: 'Using an actuarial formula to reject healthcare claims for profits.',
+    symbolicFear: 'Being audited by his own criteria and failing.',
+    redemptionGoal: 'Empathize with those he previously discarded.',
+    denialPattern: 'Maintains that "it\'s just the corporate formula, not personal."',
+    relationships: 'John Kramer (former applicant), Brent & Pamela (victims)',
+    canonStatus: 'canon',
+    notes: 'Main test subject of Saw VI.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'canon-bobby-dagen',
+    name: 'Bobby Dagen',
+    role: 'Self-Help Author',
+    archetype: 'The False Survivor',
+    timelinePeriod: 'saw-vii',
+    moralFlaw: 'Fabricating a fake Jigsaw escape story for wealth and fame.',
+    symbolicFear: 'Exposure of his lies and losing his wife\'s respect.',
+    redemptionGoal: 'Prove his claims by surviving real traps.',
+    denialPattern: 'Claims his lie "helped people heal from trauma."',
+    relationships: 'Joyce Dagen (wife), Cale & Nina (accomplices)',
+    canonStatus: 'canon',
+    notes: 'Main subject tested in Saw VII.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'canon-zeke-banks',
+    name: 'Ezekiel Banks',
+    role: 'Metro Police Detective',
+    archetype: 'The Clean Cop in a Dirty System',
+    timelinePeriod: 'legacy-era',
+    moralFlaw: 'Alienating his colleagues by reporting a corrupt officer, acting as a lone wolf.',
+    symbolicFear: 'Failing to live up to his father\'s legacy.',
+    redemptionGoal: 'Solve the copycat case and decide his father\'s fate.',
+    denialPattern: 'Convinced he can fix the entire department by himself.',
+    relationships: 'Marcus Banks (father), William Schenk (partner)',
+    canonStatus: 'canon',
+    notes: 'Tested in Spiral (2021).',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   }
 ];
 
@@ -186,7 +298,7 @@ export const PRELOADED_CAMPAIGNS: Campaign[] = [
     timelinePeriod: 'saw-i',
     tone: 'Claustrophobic, dirty, initial',
     moralTheme: 'Value of Breath & Time',
-    fictionalLocation: 'Subterranean Bathroom & warehouses',
+    fictionalLocation: 'Subterranean Bathroom & Gideon Warehouses',
     objective: 'Survive the original trials of Dr. Gordon, Amanda Young, Razor Wire maze, Flammable Jelly, Drill Chair, Shotgun Corridor, and Zep\'s test.',
     status: 'ready',
     characterIds: ['canon-lawrence-gordon', 'canon-amanda-young'],
@@ -200,7 +312,7 @@ export const PRELOADED_CAMPAIGNS: Campaign[] = [
     timelinePeriod: 'saw-ii',
     tone: 'Nerve gas, frantic, crowded',
     moralTheme: 'Self-Sacrifice vs. Selfishness',
-    fictionalLocation: 'Nerve Gas House',
+    fictionalLocation: 'Nerve Gas House (237 S. Leonard Street)',
     objective: 'Bypass the traps of Michael Marks, Obi Tate, Addison Corday, Gus Colyard, the Nerve Gas Vent, and the Needle Pit.',
     status: 'ready',
     characterIds: ['canon-amanda-young'],
@@ -214,7 +326,7 @@ export const PRELOADED_CAMPAIGNS: Campaign[] = [
     timelinePeriod: 'saw-iii-iv',
     tone: 'Twisted metal, frozen, surgery',
     moralTheme: 'Forgiveness vs. Vengeance',
-    fictionalLocation: 'Gideon Meat Packing Plant',
+    fictionalLocation: 'Gideon Meat Packing Plant (Industrial Facility)',
     objective: 'Test the limits of forgiveness via the Freezer room, the Angel Trap, Troy\'s Chains, Pig Vat, and the Rack.',
     status: 'ready',
     characterIds: ['canon-john-kramer'],
@@ -246,7 +358,7 @@ export const PRELOADED_CAMPAIGNS: Campaign[] = [
     objective: 'Solve the Pendulum, Collar Key, Water Cube, and 10 Pints of Blood hand saws.',
     status: 'ready',
     characterIds: ['canon-mark-hoffman'],
-    testIds: ['test-s5-pendulum', 'test-s5-blood-saws', 'test-s5-collar-keys', 'test-s5-water-cube', 'test-s5-ceiling-jars'],
+    testIds: ['test-s5-pendulum', 'test-s5-collar-keys', 'test-s5-ceiling-jars', 'test-s5-electric-bathtub', 'test-s5-blood-saws', 'test-s5-water-cube', 'test-s5-glass-coffin'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -256,11 +368,11 @@ export const PRELOADED_CAMPAIGNS: Campaign[] = [
     timelinePeriod: 'posthumous',
     tone: 'Corporate, healthcare, steam',
     moralTheme: 'Actuarial Decisions vs. Empathy',
-    fictionalLocation: 'Abandoned zoo corridors',
+    fictionalLocation: 'Rowan Zoological Institute (Abandoned Zoo)',
     objective: 'Bypass the Oxygen Crusher, Actuary Gallows, Steam Maze, Carousel, and Acid Injection.',
     status: 'ready',
     characterIds: ['canon-john-kramer'],
-    testIds: ['test-s6-oxygen', 'test-s6-gallows', 'test-s6-carousel', 'test-s6-steam-maze', 'test-s6-acid-latch', 'test-s6-pound-flesh'],
+    testIds: ['test-s6-oxygen', 'test-s6-gallows', 'test-s6-carousel', 'test-s6-steam-maze', 'test-s6-acid-latch', 'test-s6-pound-flesh', 'test-s6-bear-trap-2'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -270,11 +382,11 @@ export const PRELOADED_CAMPAIGNS: Campaign[] = [
     timelinePeriod: 'posthumous',
     tone: 'Public, violent, loud',
     moralTheme: 'Deceit vs. Integrity',
-    fictionalLocation: 'Public square & mental asylum',
+    fictionalLocation: 'Public Square (Downtown Window Cage) & Oakhaven Psychiatric Hospital',
     objective: 'Bypass the Horsepower trap, Silence lock, Lawnmower trap, Spike Cage, and Public Circular Saws.',
     status: 'ready',
     characterIds: ['canon-lawrence-gordon', 'canon-mark-hoffman'],
-    testIds: ['test-s7-horsepower', 'test-s7-silence', 'test-s7-lawnmower', 'test-s7-spike-cage', 'test-s7-public-exec', 'test-s7-brazen-bull'],
+    testIds: ['test-s7-horsepower', 'test-s7-silence', 'test-s7-lawnmower', 'test-s7-spike-cage', 'test-s7-public-exec', 'test-s7-brazen-bull', 'test-s7-impalement-wheel', 'test-s7-wisdom-teeth'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -284,11 +396,11 @@ export const PRELOADED_CAMPAIGNS: Campaign[] = [
     timelinePeriod: 'legacy-era',
     tone: 'Sunny barn, modern, high-tech',
     moralTheme: 'Responsibility for the Dead',
-    fictionalLocation: 'Tuck family barn',
+    fictionalLocation: 'Tuck Family Barn (Agricultural Facility)',
     objective: 'Solve the Bucket Heads scanner, Leg Wire cut, Grain Silo, Cycle trap, and the final Laser Collars.',
     status: 'ready',
     characterIds: ['canon-logan-nelson'],
-    testIds: ['test-jg-bucket-heads', 'test-jg-laser-collars', 'test-jg-leg-wire', 'test-jg-silo', 'test-jg-cycle', 'test-jg-poison-syringes'],
+    testIds: ['test-jg-bucket-heads', 'test-jg-chain-hangers', 'test-jg-poison-syringes', 'test-jg-leg-wire', 'test-jg-silo', 'test-jg-cycle', 'test-jg-shotgun-keys', 'test-jg-laser-collars'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -302,7 +414,7 @@ export const PRELOADED_CAMPAIGNS: Campaign[] = [
     objective: 'Bypass the subway Tongue trap, Finger trap, Glass Shredder, and Wax face trap.',
     status: 'ready',
     characterIds: ['canon-william-schenk'],
-    testIds: ['test-sp-tongue', 'test-sp-finger', 'test-sp-shredder', 'test-sp-wax', 'test-sp-puppet-strings'],
+    testIds: ['test-sp-tongue', 'test-sp-finger', 'test-sp-skinning', 'test-sp-wax', 'test-sp-shredder', 'test-sp-puppet-strings'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -316,7 +428,7 @@ export const PRELOADED_CAMPAIGNS: Campaign[] = [
     objective: 'Navigate the Eyeball Vacuum, Gigli Leg Saw, Pipe Bomb, Radiation Mateo Mask, and Blood Pit.',
     status: 'ready',
     characterIds: ['canon-cecilia-pederson', 'canon-amanda-young'],
-    testIds: ['test-sx-gigli', 'test-sx-pipebomb', 'test-sx-radiation', 'test-sx-vacuum', 'test-sx-blood-pit', 'test-sx-bone-crusher'],
+    testIds: ['test-sx-vacuum', 'test-sx-gigli', 'test-sx-pipebomb', 'test-sx-radiation', 'test-sx-bone-crusher', 'test-sx-blood-pit', 'test-sx-gas-room'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -1457,6 +1569,356 @@ export const PRELOADED_TESTS: SymbolicTest[] = [
     choices: [
       { id: 'choice-pit-s', text: 'Select B-3 and open release latch', scoresEffect: { courage: 40, responsibility: 30 } , narrativeImpact: 'The selected outcome is recorded in the moral ledger and changes the subject path.' },
       { id: 'choice-pit-f', text: 'Water locks', scoresEffect: { denial: 30 } , narrativeImpact: 'The selected outcome is recorded in the moral ledger and changes the subject path.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-s3-shotgun-collar',
+    campaignId: 'camp-saw-iii',
+    characterId: 'canon-john-kramer',
+    title: 'Lynn\'s Shotgun Collar',
+    moralTheme: 'Desperation vs. Duty',
+    openingTape: 'Hello, Lynn. Enter date 2024-04-12 on the safety dials to disarm the collar link before Jigsaw\'s heart monitor stops.',
+    rules: 'Enter the date "2024-04-12" to unlock Option A.',
+    puzzleType: 'logic',
+    puzzleData: {
+      question: 'Enter the disarm override date (YYYY-MM-DD):',
+      correctAnswer: '2024-04-12'
+    },
+    clues: ['Override date is 2024-04-12.'],
+    timerSeconds: 100,
+    choices: [
+      { id: 'choice-collar-d-s', text: 'Disarm collar link (Submit 2024-04-12)', scoresEffect: { courage: 30, responsibility: 30 }, narrativeImpact: 'The shotgun collar releases and disarms safely.' },
+      { id: 'choice-collar-d-f', text: 'Link triggers', scoresEffect: { denial: 40 }, narrativeImpact: 'The heart monitor fails, and the collar initiates its firing sequence.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-s4-ice-blocks',
+    campaignId: 'camp-saw-iv',
+    characterId: 'canon-john-kramer',
+    title: 'Eric Matthews Ice Blocks',
+    moralTheme: 'Patience vs. Obsession',
+    openingTape: 'Eric Matthews. You stand on ice blocks linked to electrocution. Move the slider past $150,000 to direct the counterweights and balance the platform.',
+    rules: 'Set the balance slider to $150,000 or above.',
+    puzzleType: 'sacrifice',
+    puzzleData: { question: 'Direct counterweights balance ($250,000 max):' },
+    clues: ['Slide past $150,000.'],
+    timerSeconds: 95,
+    choices: [
+      { id: 'choice-ice-s', text: 'Balance platform (Slider past $150,000)', scoresEffect: { courage: 40, responsibility: 30 }, narrativeImpact: 'The platform balances, locking the ice blocks in place.' },
+      { id: 'choice-ice-f', text: 'Blocks slip', scoresEffect: { denial: 35 }, narrativeImpact: 'The ice blocks slip, and the current triggers.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-s5-ceiling-jars',
+    campaignId: 'camp-saw-v',
+    characterId: 'canon-mark-hoffman',
+    title: 'The Ceiling Jars Grid',
+    moralTheme: 'Logic vs. Haste',
+    openingTape: 'Ashley and Charles. The keys to the ceiling collars are behind coordinate B-3. Scan B-3 to open the locks.',
+    rules: 'Find coordinate B-3 on the grid tiles.',
+    puzzleType: 'choice',
+    puzzleData: { question: 'Scan coordinate jar (A-1 to C-3):', correctAnswer: 'B-3' },
+    clues: ['Scan B-3.'],
+    timerSeconds: 100,
+    choices: [
+      { id: 'choice-jars-s', text: 'Select B-3 and release keys', scoresEffect: { cooperation: 30, responsibility: 35 }, narrativeImpact: 'The collar locks release safely.' },
+      { id: 'choice-jars-f', text: 'Collars winch', scoresEffect: { denial: 30 }, narrativeImpact: 'Timers run out, and the collar winches execute.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-s6-pound-flesh',
+    campaignId: 'camp-saw-vi',
+    characterId: 'canon-john-kramer',
+    title: 'The Pound of Flesh',
+    moralTheme: 'Sacrifice vs. Selfishness',
+    openingTape: 'Eddie and Simone. You take from the desperate. To release your skull screws, move the scale slider past $150,000.',
+    rules: 'Set slider past $150,000.',
+    puzzleType: 'sacrifice',
+    puzzleData: { question: 'Balance skull screw scale ($250,000 max):' },
+    clues: ['Slide past $150,000.'],
+    timerSeconds: 90,
+    choices: [
+      { id: 'choice-flesh-s', text: 'Shed flesh (Slider past $150,000)', scoresEffect: { courage: 40 }, narrativeImpact: 'Simone overrides the pressure limit and releases the skull clamps.' },
+      { id: 'choice-flesh-f', text: 'Clamps trigger', scoresEffect: { denial: 30 }, narrativeImpact: 'Eddie fails to meet the scale limit before the screws ignite.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-s7-brazen-bull',
+    campaignId: 'camp-saw-vii',
+    characterId: 'canon-mark-hoffman',
+    title: 'The Brazen Bull harness',
+    moralTheme: 'Integrity vs. Retribution',
+    openingTape: 'Bobby. Joyce did not know you were a fraud, but she enjoyed the benefits. Move the slider past $150,000 to raise the final latch hooks.',
+    rules: 'Adjust scale slider to at least $150,000.',
+    puzzleType: 'sacrifice',
+    puzzleData: { question: 'Raise latch hooks current ($250,000 max):' },
+    clues: ['Slide past $150,000.'],
+    timerSeconds: 120,
+    choices: [
+      { id: 'choice-bull-s', text: 'Disconnect hooks (Slider past $150,000)', scoresEffect: { courage: 40, responsibility: 30 }, narrativeImpact: 'Bobby connects the hooks, releasing Joyce from the brazen bull.' },
+      { id: 'choice-bull-f', text: 'Bull ignites', scoresEffect: { denial: 45 }, narrativeImpact: 'Bobby slips. The brazen bull closes and ignites.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-jg-poison-syringes',
+    campaignId: 'camp-jigsaw',
+    characterId: 'canon-logan-nelson',
+    title: 'Carly\'s Poison Syringe',
+    moralTheme: 'Cowardice vs. Truth',
+    openingTape: 'Carly. You stole from a sick lady. The syringe antidote key is B-3. Scan B-3 to unlock the syringe neck locks.',
+    rules: 'Find coordinate B-3 on the grid tiles.',
+    puzzleType: 'choice',
+    puzzleData: { question: 'Scan coordinate syringe (A-1 to C-3):', correctAnswer: 'B-3' },
+    clues: ['Scan B-3.'],
+    timerSeconds: 95,
+    choices: [
+      { id: 'choice-syr-s', text: 'Select B-3 and release locks', scoresEffect: { courage: 30, responsibility: 35 }, narrativeImpact: 'Carly retrieves the correct syringe and releases the collar.' },
+      { id: 'choice-syr-f', text: 'Collar drops', scoresEffect: { denial: 40 }, narrativeImpact: 'Failed scan locks the valve dials, starting the poison.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-sp-puppet-strings',
+    campaignId: 'camp-spiral',
+    characterId: 'canon-william-schenk',
+    title: 'Marcus Banks Chains',
+    moralTheme: 'Reform vs. Retaliation',
+    openingTape: 'Zeke. Your father Marcus Banks tolerated corruption. To lower the chain release latch, adjust the slider to at least $150,000.',
+    rules: 'Set balance slider to at least $150,000.',
+    puzzleType: 'sacrifice',
+    puzzleData: { question: 'Lower chain release current ($250,000 max):' },
+    clues: ['Slide past $150,000.'],
+    timerSeconds: 110,
+    choices: [
+      { id: 'choice-puppet-s', text: 'Lower chain latch (Slider past $150,000)', scoresEffect: { courage: 30, cooperation: 30 }, narrativeImpact: 'Zeke lowers the chains and releases his father Marcus Banks.' },
+      { id: 'choice-puppet-f', text: 'Locks trigger', scoresEffect: { denial: 40 }, narrativeImpact: 'SWAT teams trigger the string traps, executing Marcus Banks.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-sx-bone-crusher',
+    campaignId: 'camp-saw-x',
+    characterId: 'canon-cecilia-pederson',
+    title: 'Gabriela\'s Radiation Gasket',
+    moralTheme: 'Survival vs. Apathy',
+    openingTape: 'Gabriela. You recruited marks. Move the slider past $150,000 to disconnect the radiation emitter.',
+    rules: 'Set the balance slider to at least $150,000.',
+    puzzleType: 'sacrifice',
+    puzzleData: { question: 'Disconnect radiation current ($250,000 max):' },
+    clues: ['Slide past $150,000.'],
+    timerSeconds: 110,
+    choices: [
+      { id: 'choice-crush-s', text: 'Bypass radiation (Slider past $150,000)', scoresEffect: { courage: 40, responsibility: 30 }, narrativeImpact: 'Gabriela overrides the radiation voltage and releases the latch.' },
+      { id: 'choice-crush-f', text: 'Radiation ignites', scoresEffect: { denial: 35 }, narrativeImpact: 'Voltage fails. The radiation grid fires.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-s5-electric-bathtub',
+    campaignId: 'camp-saw-v',
+    characterId: 'canon-mark-hoffman',
+    title: 'The Electric Bathtub',
+    moralTheme: 'Cooperation vs. Self-Preservation',
+    openingTape: 'Brit and Mallick. You must complete a 10-volt circuit. Move the slider past $150,000 to connect the electrical current through the reservoir terminals.',
+    rules: 'Set the balance slider to at least $150,000.',
+    puzzleType: 'sacrifice',
+    puzzleData: { question: 'Complete electrical circuit balance ($250,000 max):' },
+    clues: ['Slide past $150,000.'],
+    timerSeconds: 95,
+    choices: [
+      { id: 'choice-tub-s', text: 'Connect body current (Slider past $150,000)', scoresEffect: { cooperation: 40, courage: 30 }, narrativeImpact: 'They share the electrical shock, unlocking the exit door.' },
+      { id: 'choice-tub-f', text: 'Current fails', scoresEffect: { denial: 35 }, narrativeImpact: 'The circuit remains incomplete. The bathtub explodes.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-s5-glass-coffin',
+    campaignId: 'camp-saw-v',
+    characterId: 'canon-mark-hoffman',
+    title: 'The Glass Coffin',
+    moralTheme: 'Trust vs. Suspicion',
+    openingTape: 'Strahm. Enter the glass coffin. Scan coordinate B-3 to open the latch of the coffin before the walls compress.',
+    rules: 'Find coordinate B-3 on the grid tiles.',
+    puzzleType: 'choice',
+    puzzleData: { question: 'Scan coordinate coffin latch (A-1 to C-3):', correctAnswer: 'B-3' },
+    clues: ['Scan B-3.'],
+    timerSeconds: 100,
+    choices: [
+      { id: 'choice-coffin-s', text: 'Select B-3 and enter coffin', scoresEffect: { courage: 40, responsibility: 30 }, narrativeImpact: 'Strahm enters the coffin. It lowers into the floor as the walls crush the room.' },
+      { id: 'choice-coffin-f', text: 'Refuse coffin', scoresEffect: { denial: 40 }, narrativeImpact: 'Strahm remains outside. The compression walls close on him.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-s6-bear-trap-2',
+    campaignId: 'camp-saw-vi',
+    characterId: 'canon-mark-hoffman',
+    title: 'Reverse Bear Trap 2.0',
+    moralTheme: 'Retribution vs. Mercy',
+    openingTape: 'Hoffman. You took my work and made it bloodsport. Secure mesh index 15 to release the headgear latch.',
+    rules: 'Rotate left gear (+3) and right gear (+2) to equal exactly 15.',
+    puzzleType: 'maze',
+    puzzleData: { question: 'Align gears to sum exactly to 15:', correctAnswer: '15' },
+    clues: ['Align the ratios to sum to 15.'],
+    timerSeconds: 90,
+    choices: [
+      { id: 'choice-rbt2-s', text: 'Disarm Lock (Submit sum 15)', scoresEffect: { courage: 40, responsibility: 30 }, narrativeImpact: 'Hoffman aligns the gears to 15, dropping the harness latch key.' },
+      { id: 'choice-rbt2-f', text: 'Trap triggers', scoresEffect: { denial: 40 }, narrativeImpact: 'The gears jam. Hoffman wedged his jaw but suffered severe lacerations.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-s7-impalement-wheel',
+    campaignId: 'camp-saw-vii',
+    characterId: 'canon-mark-hoffman',
+    title: 'The Impalement Wheel',
+    moralTheme: 'Deceit vs. Sacrifice',
+    openingTape: 'Suzanne. You saw my fake survival and profited from it. Move the slider past $150,000 to halt the spike drive gears before they pierce your eyes.',
+    rules: 'Set balance slider past $150,000.',
+    puzzleType: 'sacrifice',
+    puzzleData: { question: 'Halt spike drive current ($250,000 max):' },
+    clues: ['Slide past $150,000.'],
+    timerSeconds: 95,
+    choices: [
+      { id: 'choice-wheel-s', text: 'Halt wheel (Slider past $150,000)', scoresEffect: { courage: 40, responsibility: 30 }, narrativeImpact: 'Suzanne overrides the pressure limit and releases the safety latch.' },
+      { id: 'choice-wheel-f', text: 'Wheel spins', scoresEffect: { denial: 35 }, narrativeImpact: 'Voltage fails. The spikes pierce the subject.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-s7-wisdom-teeth',
+    campaignId: 'camp-saw-vii',
+    characterId: 'canon-mark-hoffman',
+    title: 'Wisdom Teeth Combination',
+    moralTheme: 'Pain vs. Redemption',
+    openingTape: 'Bobby. The code to the locked gate is 2024-04-12. Saisie it on the terminal dials to release your teeth extraction clamps.',
+    rules: 'Enter the date 2024-04-12.',
+    puzzleType: 'logic',
+    puzzleData: { question: 'Enter the override dial date (YYYY-MM-DD):', correctAnswer: '2024-04-12' },
+    clues: ['Override date is 2024-04-12.'],
+    timerSeconds: 100,
+    choices: [
+      { id: 'choice-teeth-s', text: 'Submit date and open gate', scoresEffect: { courage: 30, responsibility: 30 }, narrativeImpact: 'Bobby inputs 2024-04-12, unlocking the gate safety latch.' },
+      { id: 'choice-teeth-f', text: 'Clamps pull', scoresEffect: { denial: 35 }, narrativeImpact: 'Failed scan locks the valve dials, starting the pull.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-jg-chain-hangers',
+    campaignId: 'camp-jigsaw',
+    characterId: 'canon-logan-nelson',
+    title: 'The Chain Hangers',
+    moralTheme: 'Confession vs. Pride',
+    openingTape: 'Carly, Ryan and Mitch. To stop the chains from lifting you, behind mirror B-2 is the confession recorder. Scan B-2 to confess.',
+    rules: 'Select B-2 in the confession grid.',
+    puzzleType: 'confession',
+    puzzleData: {
+      question: 'Identify the confession mirror B-2:',
+      confessionOptions: [
+        { id: 'A-1', text: 'Blame others', truthScore: 10 },
+        { id: 'B-2', text: 'Confess: Admit that I stole the purse', truthScore: 90 },
+        { id: 'C-3', text: 'Deny everything', truthScore: 20 }
+      ]
+    },
+    clues: ['Confession mirror is B-2.'],
+    timerSeconds: 90,
+    choices: [
+      { id: 'choice-hang-s', text: 'Submit confession B-2', scoresEffect: { truth: 30, responsibility: 30 }, narrativeImpact: 'They submit the confession, releasing the winches.' },
+      { id: 'choice-hang-f', text: 'Winch executes', scoresEffect: { denial: 35 }, narrativeImpact: 'Failed confession pulls them into the ceiling blade.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-jg-shotgun-keys',
+    campaignId: 'camp-jigsaw',
+    characterId: 'canon-logan-nelson',
+    title: 'Shotgun Keys Latch',
+    moralTheme: 'Trust vs. Betrayal',
+    openingTape: 'Anna and Ryan. The keys are inside the shotgun shells. The release latch coordinate is B-3. Scan B-3 to decide.',
+    rules: 'Find coordinate B-3 on the grid tiles.',
+    puzzleType: 'choice',
+    puzzleData: { question: 'Scan coordinate key release (A-1 to C-3):', correctAnswer: 'B-3' },
+    clues: ['Scan B-3.'],
+    timerSeconds: 100,
+    choices: [
+      { id: 'choice-shell-s', text: 'Select B-3 and pull release latch', scoresEffect: { courage: 40, responsibility: 30 }, narrativeImpact: 'They disarm the shotgun trigger, releasing the keys.' },
+      { id: 'choice-shell-f', text: 'Trigger pulls', scoresEffect: { denial: 45 }, narrativeImpact: 'Incorrect selection fires the shotgun, executing Anna.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-sp-skinning',
+    campaignId: 'camp-spiral',
+    characterId: 'canon-william-schenk',
+    title: 'The Skinning Latch',
+    moralTheme: 'Integrity vs. Self-Interest',
+    openingTape: 'Peter Dunleavy. You covered up police crimes. Saisie override date 2024-04-12 on the valve terminal dials to release the skinning winch clamps.',
+    rules: 'Enter the date 2024-04-12.',
+    puzzleType: 'logic',
+    puzzleData: { question: 'Enter the override dial date (YYYY-MM-DD):', correctAnswer: '2024-04-12' },
+    clues: ['Use date 2024-04-12.'],
+    timerSeconds: 100,
+    choices: [
+      { id: 'choice-skin-s', text: 'Submit date and stop skinning winch', scoresEffect: { courage: 30, responsibility: 30 }, narrativeImpact: 'Peter enters the override code, shutting down the skinning winch.' },
+      { id: 'choice-skin-f', text: 'Winch pulls', scoresEffect: { denial: 35 }, narrativeImpact: 'Incorrect code locks the valve. The skinning harness triggers.' }
+    ],
+    safetyNote: 'Fictional simulation.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'test-sx-gas-room',
+    campaignId: 'camp-saw-x',
+    characterId: 'canon-cecilia-pederson',
+    title: 'Poison Gas Room',
+    moralTheme: 'Greed vs. Redemption',
+    openingTape: 'Cecilia and Parker. You trapped yourself. The toxic gas fills the room. Enter date 2024-04-12 on the terminal dials to open the air ventilation viewport.',
+    rules: 'Enter the date 2024-04-12.',
+    puzzleType: 'logic',
+    puzzleData: { question: 'Enter the ventilation override date (YYYY-MM-DD):', correctAnswer: '2024-04-12' },
+    clues: ['Override date is 2024-04-12.'],
+    timerSeconds: 120,
+    choices: [
+      { id: 'choice-gas-s', text: 'Submit date and open viewport', scoresEffect: { truth: 40, responsibility: 30 }, narrativeImpact: 'The air viewport pops open, venting the gas out of the room.' },
+      { id: 'choice-gas-f', text: 'Gas seals', scoresEffect: { denial: 45 }, narrativeImpact: 'The gas seals lock, asphyxiating the occupants.' }
     ],
     safetyNote: 'Fictional simulation.',
     createdAt: new Date().toISOString(),

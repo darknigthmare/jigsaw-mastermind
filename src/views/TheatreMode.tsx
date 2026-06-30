@@ -310,6 +310,72 @@ export const TheatreMode: React.FC = () => {
               </div>
             </CRTPanel>
 
+            {/* Subject Vitals Telemetry */}
+            {activeSimulation.subjectVitals && (
+              <CRTPanel className="p-4 flex flex-col gap-2">
+                <span className="text-[9px] font-bold text-terminal-green border-b border-terminal-green/20 pb-1.5 uppercase select-none flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-terminal-green animate-ping" />
+                  SUBJECT VITALS TELEMETRY
+                </span>
+                
+                <div className="grid grid-cols-3 gap-2 text-center font-mono select-none">
+                  <div className="bg-black/50 border border-terminal-metal p-2 rounded">
+                    <span className="text-[8px] text-c4cdc4/50 block">PULSE</span>
+                    <span className="text-xs font-bold text-terminal-red">
+                      {activeSimulation.subjectVitals.heartRate} <span className="text-[8px] font-normal text-c4cdc4/60">BPM</span>
+                    </span>
+                  </div>
+                  <div className="bg-black/50 border border-terminal-metal p-2 rounded">
+                    <span className="text-[8px] text-c4cdc4/50 block">RESP</span>
+                    <span className="text-xs font-bold text-[#e2a228]">
+                      {activeSimulation.subjectVitals.respiration} <span className="text-[8px] font-normal text-c4cdc4/60">/MIN</span>
+                    </span>
+                  </div>
+                  <div className="bg-black/50 border border-terminal-metal p-2 rounded">
+                    <span className="text-[8px] text-c4cdc4/50 block">ADR</span>
+                    <span className="text-xs font-bold text-terminal-green">
+                      {activeSimulation.subjectVitals.adrenaline} <span className="text-[8px] font-normal text-c4cdc4/60">%</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Simulated EKG Waveform */}
+                <div className="w-full h-8 bg-black/60 border border-terminal-metal rounded relative overflow-hidden flex items-center">
+                  <div className="absolute inset-y-0 left-0 right-0 opacity-40 bg-[linear-gradient(90deg,rgba(57,255,20,0.15)_1px,transparent_1px)] bg-[size:10px_10px]" />
+                  <svg className="w-full h-full text-terminal-green" viewBox="0 0 100 10" preserveAspectRatio="none">
+                    <path
+                      d={
+                        activeSimulation.subjectVitals.heartRate > 120
+                          ? "M0,5 L20,5 L22,2 L24,8 L26,5 L40,5 L42,1 L44,9 L46,5 L60,5 L62,2 L64,8 L66,5 L80,5 L82,1 L84,9 L86,5 L100,5"
+                          : "M0,5 L30,5 L33,1 L36,9 L39,5 L65,5 L68,1 L71,9 L74,5 L100,5"
+                      }
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="0.8"
+                      className="animate-pulse"
+                    />
+                  </svg>
+                </div>
+              </CRTPanel>
+            )}
+
+            {/* Jigsaw Commentary Log */}
+            {activeSimulation.commentaryLog && activeSimulation.commentaryLog.length > 0 && (
+              <CRTPanel className="p-4 flex flex-col gap-2 max-h-[160px] overflow-hidden">
+                <span className="text-[9px] font-bold text-terminal-green border-b border-terminal-green/20 pb-1.5 uppercase select-none">
+                  ARCHITECT DIRECTIVES LOG
+                </span>
+                <div className="flex flex-col gap-1.5 font-mono text-[8px] text-c4cdc4/65 overflow-y-auto max-h-[100px] pr-1">
+                  {activeSimulation.commentaryLog.slice(-5).map((logLine, idx) => (
+                    <div key={idx} className="border-l border-terminal-green/30 pl-1.5">
+                      <span className="text-terminal-green-dim font-bold block select-none">[LOG DATA]</span>
+                      <span className="select-text">{logLine}</span>
+                    </div>
+                  ))}
+                </div>
+              </CRTPanel>
+            )}
+
             {/* Decrypter Button */}
             {!isFinished && currentTest && (
               <button

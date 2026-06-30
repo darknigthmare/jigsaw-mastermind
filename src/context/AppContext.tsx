@@ -31,6 +31,8 @@ interface ActiveSimulation {
   puzzleAttempts: number;
   isPuzzleActive: boolean;
   revealedCluesIndices: number[];
+  commentaryLog?: string[];
+  subjectVitals?: { heartRate: number; respiration: number; adrenaline: number };
 }
 
 interface AppContextType {
@@ -444,7 +446,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       puzzleInput: '',
       puzzleAttempts: 0,
       isPuzzleActive: firstTest.puzzleType !== 'choice',
-      revealedCluesIndices: []
+      revealedCluesIndices: [],
+      commentaryLog: [`[SYSTEM INITIALIZATION] Monitoring subject vitals... Calibration matches standard test parameters.`],
+      subjectVitals: { heartRate: 75, respiration: 16, adrenaline: 10 }
     });
 
     setView('theatre');
@@ -490,7 +494,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isPlayingTape: false,
         isFinished: true,
         ending: endingDetails,
-        timerLeft: 0
+        timerLeft: 0,
+        commentaryLog: [
+          ...(activeSimulation.commentaryLog || []),
+          `[CHOICE COMMITTED] Subject resolved test layer [${currentTest.title}] via [${choice.text}].`,
+          `[SYSTEM SHUTDOWN] Final outcome resolved: ${endingDetails.title}.`
+        ],
+        subjectVitals: activeSimulation.subjectVitals ? {
+          heartRate: 65, // resting normal after stress dismount
+          respiration: 14,
+          adrenaline: 5
+        } : undefined
       };
       
       setActiveSimulation(finishedSim);
@@ -534,7 +548,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         puzzleInput: '',
         puzzleAttempts: 0,
         isPuzzleActive: nextTest.puzzleType !== 'choice',
-        revealedCluesIndices: []
+        revealedCluesIndices: [],
+        commentaryLog: [
+          ...(activeSimulation.commentaryLog || []),
+          `[CHOICE COMMITTED] Subject resolved test layer [${currentTest.title}] via [${choice.text}].`,
+          `[CALIBRATION] Transitioning telemetry to test layer #${nextIndex + 1}: [${nextTest.title}].`
+        ],
+        subjectVitals: activeSimulation.subjectVitals ? {
+          heartRate: Math.min(160, activeSimulation.subjectVitals.heartRate + 15),
+          respiration: Math.min(35, activeSimulation.subjectVitals.respiration + 3),
+          adrenaline: Math.min(100, activeSimulation.subjectVitals.adrenaline + 20)
+        } : undefined
       });
       addLog(`SIMULATION: Advancing to test layer #${nextIndex + 1}: [${nextTest.title}]`);
     }
@@ -666,6 +690,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         
         setActiveSimulation(prev => {
           if (!prev) return null;
+          
+          // Fluctuate vitals
+          const heartRateFactor = prev.timerLeft <= 30 ? 1.4 : 1.0;
+          const nextVitals = prev.subjectVitals ? {
+            heartRate: Math.round(75 + (prev.tests[prev.currentTestIndex].timerSeconds - prev.timerLeft) * 0.4 * heartRateFactor + (Math.random() * 6 - 3)),
+            respiration: Math.round(15 + (prev.tests[prev.currentTestIndex].timerSeconds - prev.timerLeft) * 0.1 * heartRateFactor + (Math.random() * 2 - 1)),
+            adrenaline: Math.round(10 + (prev.tests[prev.currentTestIndex].timerSeconds - prev.timerLeft) * 0.6 * heartRateFactor + (Math.random() * 4 - 2))
+          } : { heartRate: 75, respiration: 16, adrenaline: 10 };
+
+          nextVitals.heartRate = Math.max(60, Math.min(185, nextVitals.heartRate));
+          nextVitals.respiration = Math.max(12, Math.min(42, nextVitals.respiration));
+          nextVitals.adrenaline = Math.max(5, Math.min(100, nextVitals.adrenaline));
+
           if (prev.timerLeft <= 1) {
             clearInterval(timerRef.current!);
             
@@ -679,9 +716,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               submitChoice(fallbackChoice.id);
             }, 0);
 
-            return { ...prev, timerLeft: 0 };
+            return { 
+              ...prev, 
+              timerLeft: 0,
+              subjectVitals: { heartRate: 155, respiration: 38, adrenaline: 95 },
+              commentaryLog: [...(prev.commentaryLog || []), `[TIMER EXPIRED] Subject failed to disarm parameter in time.`]
+            };
           }
-          return { ...prev, timerLeft: prev.timerLeft - 1 };
+
+          let nextCommentary = prev.commentaryLog || [];
+          if (prev.timerLeft % 15 === 0 && prev.timerLeft > 0) {
+            const comments = [
+              `[CALIBRATION] Stress levels mounting. Adrenaline concentration at ${nextVitals.adrenaline}%.`,
+              `[DIAGNOSIS] Respiration is irregular. Subject struggling with moral weight of the task.`,
+              `[MONITORING] Heartrate spiking to ${nextVitals.heartRate} BPM. Survival instinct activating...`,
+              `[METRICS] Denial index evaluated at ${prev.scores.denial}%. Calibration normal.`
+            ];
+            const randomComment = comments[Math.floor(Math.random() * comments.length)];
+            nextCommentary = [...nextCommentary, randomComment];
+          }
+
+          return { 
+            ...prev, 
+            timerLeft: prev.timerLeft - 1,
+            subjectVitals: nextVitals,
+            commentaryLog: nextCommentary
+          };
         });
       }, 1000);
     }
