@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Godot editor/import and local export caches
+godot-fps/.godot/
+godot-fps/export_credentials.cfg

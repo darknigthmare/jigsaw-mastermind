@@ -217,3 +217,7 @@ html, body, #root {
   transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+/* Keep account actions on the dashboard so gameplay controls remain reachable. */
+body:has(.theatre-mode, .station-view) #cloudAccountWidget {
+  display: none;
+}

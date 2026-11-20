@@ -1,0 +1,67 @@
+config_version=5
+
+[application]
+config/name="Station de contrôle"
+run/main_scene="res://station.tscn"
+config/features=PackedStringArray("4.6", "GL Compatibility")
+
+[display]
+window/size/viewport_width=1152
+window/size/viewport_height=720
+
+[input]
+move_forward={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":87), Object(InputEventKey,"keycode":90)]
+}
+
+move_back={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":83)]
+}
+
+move_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":65), Object(InputEventKey,"keycode":81)]
+}
+
+move_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":68)]
+}
+
+look_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194319)]
+}
+
+look_up={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194320)]
+}
+
+look_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194321)]
+}
+
+look_down={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194322)]
+}
+
+station_interact={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":69)]
+}
+
+station_pause={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":80), Object(InputEventKey,"keycode":4194305)]
+}
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+textures/default_filters/anisotropic_filtering_level=2

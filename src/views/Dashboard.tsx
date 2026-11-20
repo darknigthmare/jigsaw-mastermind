@@ -1,9 +1,14 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { CRTPanel } from '../components/common/CRTPanel';
-import { Play, Clipboard, Compass, FolderOpen, Calendar } from 'lucide-react';
+import { Play, Clipboard, Compass, FolderOpen, Calendar, ArrowUpRight, ScanLine, KeyRound, Cable, Library } from 'lucide-react';
+import './StationMode.css';
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  onOpenStation: () => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ onOpenStation }) => {
   const { campaigns, characters, runs, setView, startSimulation } = useApp();
 
   const activeCampaigns = campaigns.filter(c => c.status === 'ready');
@@ -11,7 +16,7 @@ export const Dashboard: React.FC = () => {
   const recentRuns = runs.slice(0, 5);
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto">
+    <div className="station-dashboard flex flex-col gap-6 max-w-6xl mx-auto">
       {/* Page Header */}
       <div className="flex flex-col gap-1 border-b border-terminal-metal/40 pb-4">
         <h2 className="text-xl font-extrabold tracking-widest text-white uppercase flex items-center gap-2">
@@ -24,6 +29,23 @@ export const Dashboard: React.FC = () => {
           Manage local fictional campaigns, view dossiers, and launch psychological escape-room tests.
         </p>
       </div>
+
+      <section className="station-launch-card" aria-labelledby="station-launch-title">
+        <div className="station-launch-copy">
+          <div className="station-eyebrow"><ScanLine size={15} aria-hidden="true" /> EXPÉRIENCE ORIGINALE · VUE SUBJECTIVE</div>
+          <h3 id="station-launch-title">Station de contrôle</h3>
+          <p>Une station silencieuse. Trois salles à explorer. Retrouvez l’accès et rétablissez la sortie.</p>
+          <div className="station-launch-meta"><span>Exploration & énigmes</span><span>Clavier / souris / tactile</span></div>
+          <button id="station-launch" className="station-primary-button" onClick={onOpenStation}>
+            <Play size={16} fill="currentColor" aria-hidden="true" /> Lancer l’exploration <ArrowUpRight size={17} aria-hidden="true" />
+          </button>
+        </div>
+        <ol className="station-route" aria-label="Parcours des trois salles">
+          <li><span className="station-route-icon"><KeyRound size={21} aria-hidden="true" /></span><div><small>01 / SAS</small><strong>Récupérer le badge</strong></div></li>
+          <li><span className="station-route-icon"><Cable size={21} aria-hidden="true" /></span><div><small>02 / GALERIE TECHNIQUE</small><strong>Rétablir les relais</strong></div></li>
+          <li><span className="station-route-icon"><Library size={21} aria-hidden="true" /></span><div><small>03 / ARCHIVES</small><strong>Consulter l’index · trouver la sortie</strong></div></li>
+        </ol>
+      </section>
 
       {/* Grid: Quick Actions and Status */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

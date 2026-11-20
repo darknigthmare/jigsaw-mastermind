@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { CRTPanel } from '../components/common/CRTPanel';
 import { TapePlayer } from '../components/common/TapePlayer';
 import { TimerDisplay } from '../components/common/TimerDisplay';
 import { MoralScoreBars } from '../components/common/MoralScoreBars';
+import { TheatreScene } from '../components/common/TheatreScene';
+import type { CharacterProfile } from '../types';
 import * as sound from '../services/sound';
-import { Radio, AlertTriangle, FileText, ChevronRight, X, ArrowLeft, Video } from 'lucide-react';
+import { Radio, AlertTriangle, FileText, ChevronRight, X, ArrowLeft } from 'lucide-react';
 
 export const TheatreMode: React.FC = () => {
   const {
@@ -20,7 +22,8 @@ export const TheatreMode: React.FC = () => {
   } = useApp();
   
   const [showClues, setShowClues] = useState(false);
-  const [cctvTime, setCctvTime] = useState('');
+  const clueDialogRef = useRef<HTMLDivElement>(null);
+  const theatreRef = useRef<HTMLDivElement>(null);
 
   // Local state for Logic Puzzle (Vault Dial combination lock)
   const [dialYear, setDialYear] = useState('2022');
@@ -37,16 +40,24 @@ export const TheatreMode: React.FC = () => {
     setGearRightClicks(0);
   }, [activeSimulation?.currentTestIndex]);
 
-  // CCTV timestamp tick
+  // A stage transition starts at the new room, rather than leaving the player
+  // below its illustration at the previous stage's console scroll position.
   useEffect(() => {
-    const updateCctv = () => {
-      const now = new Date();
-      setCctvTime(now.toLocaleDateString() + ' ' + now.toLocaleTimeString());
+    const theatre = theatreRef.current;
+    if (!theatre) return;
+    theatre.scrollTop = 0;
+    theatre.querySelector<HTMLHeadingElement>('h1')?.focus({ preventScroll: true });
+  }, [activeSimulation?.currentTestIndex]);
+
+  // Keep clue inspection inside its dialog and return to the triggering control.
+  useEffect(() => {
+    if (!showClues) return;
+    const previousFocus = document.activeElement;
+    clueDialogRef.current?.focus();
+    return () => {
+      if (previousFocus instanceof HTMLElement) previousFocus.focus();
     };
-    updateCctv();
-    const interval = setInterval(updateCctv, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [showClues]);
 
   // Play puppet laughter on mount to welcome the player
   useEffect(() => {
@@ -60,7 +71,13 @@ export const TheatreMode: React.FC = () => {
     const currentTest = simTests[currentTestIndex];
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.key === 'Escape' && showClues) {
+        e.preventDefault();
+        setShowClues(false);
+        return;
+      }
+      if (showClues || (e.target instanceof Element && e.target.closest('button, a, input, textarea, select, summary, [contenteditable="true"], [role="button"]'))) {
         return;
       }
       
@@ -78,19 +95,21 @@ export const TheatreMode: React.FC = () => {
       } else if (key === '1') {
         e.preventDefault();
         if (!isPlayingTape && !isFinished && currentTest && (!isPuzzleActive || isPuzzleSolved)) {
-          submitChoice(currentTest.choices[0].id);
+          const choiceId = currentTest.choices[0]?.id;
+          if (choiceId) submitChoice(choiceId);
         }
       } else if (key === '2') {
         e.preventDefault();
         if (!isPlayingTape && !isFinished && currentTest && (!isPuzzleActive || isPuzzleSolved)) {
-          submitChoice(currentTest.choices[1].id);
+          const choiceId = currentTest.choices[1]?.id;
+          if (choiceId) submitChoice(choiceId);
         }
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeSimulation, toggleTapePlayback, exitSimulation, submitChoice]);
+  }, [activeSimulation, toggleTapePlayback, exitSimulation, submitChoice, showClues]);
 
   if (!activeSimulation) {
     return (
@@ -149,29 +168,6 @@ export const TheatreMode: React.FC = () => {
     `---------------------------------------\n` +
     `This is a local fictional simulation. No real individuals were tested.` : '';
 
-  // Get room background
-  const getRoomBackground = () => {
-    switch (campaign.id) {
-      case 'camp-ledger-room':
-        return 'url("/ledger_room_bg.png")';
-      case 'camp-glass-confession':
-        return 'url("/glass_confession_bg.png")';
-      case 'camp-quiet-scale':
-        return 'url("/quiet_scale_bg.png")';
-      default:
-        return 'none';
-    }
-  };
-
-  const getCctvLabel = () => {
-    switch (campaign.id) {
-      case 'camp-ledger-room': return 'CAM_01_VAULT_ZONING';
-      case 'camp-glass-confession': return 'CAM_02_MIRRORS_WALL';
-      case 'camp-quiet-scale': return 'CAM_03_COMP_SCALES';
-      default: return 'CAM_99_SYS_MONITOR';
-    }
-  };
-
   const rotateValue = (current: string, options: string[], direction: 'up' | 'down') => {
     sound.playClick();
     const idx = options.indexOf(current);
@@ -194,54 +190,37 @@ export const TheatreMode: React.FC = () => {
   const rightY = -scaleAngle * 1.2;
 
   return (
-    <div
-      className="fixed inset-0 bg-[#070807] z-40 overflow-y-auto p-4 md:p-8 flex flex-col justify-between font-mono transition-all duration-1000"
-      style={{
-        backgroundImage: getRoomBackground(),
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      {/* Dark gradient filter wrapper to preserve text readability */}
-      <div className="absolute inset-0 bg-black/80 z-0 pointer-events-none" />
-      <div className="scanline-overlay" />
-      <div className="visual-noise-overlay" style={{ opacity: 0.10 }} />
-
-      <div className="relative z-10 flex flex-col justify-between h-full min-h-screen">
-        {/* Top Console Status */}
-        <div className="flex flex-wrap items-center justify-between border-b border-terminal-metal-light pb-3 mb-6 select-none text-[10px] text-c4cdc4/50">
-          <div className="flex items-center gap-3">
-            <span className="text-terminal-red animate-pulse font-bold flex items-center gap-1">
-              <Radio size={14} />
-              [SIMULATION LAYER ACTIVE]
-            </span>
-            <span className="text-white font-bold">
-              CAMP: {campaign.title.toUpperCase()}
-            </span>
+    <div ref={theatreRef} className="theatre-mode fixed inset-0 bg-[#0a100a] z-40 overflow-y-auto p-4 md:p-8 font-mono">
+      <a href="#theatre-stage-console" className="theatre-mode__skip">Skip to stage console</a>
+      <div className="theatre-mode__inner">
+        <header className="theatre-mode__topbar">
+          <div>
+            <p>Theatre / Fictional simulation</p>
+            <strong>{campaign.title}</strong>
           </div>
+          <button type="button" onClick={exitSimulation} className="theatre-mode__exit">
+            <X size={16} aria-hidden="true" /> Exit theatre
+          </button>
+        </header>
 
-          <div className="flex items-center gap-4">
-            <span className="text-terminal-green-dim font-bold">
-              STAGE: {currentTestIndex + 1} OF {tests.length}
-            </span>
-            <button
-              onClick={exitSimulation}
-              className="flex items-center gap-1.5 border border-terminal-red/40 hover:border-terminal-red bg-terminal-red/5 hover:bg-terminal-red/20 px-2.5 py-1 text-[9px] text-terminal-red font-bold rounded cursor-pointer transition-colors"
-            >
-              <X size={10} />
-              ABORT ENGINE
-            </button>
-          </div>
-        </div>
+        <TheatreScene
+          campaign={campaign}
+          tests={tests}
+          currentTestIndex={currentTestIndex}
+          completedTestIds={activeSimulation.decisions.map(decision => decision.testId)}
+          subjectName={matchingCharacterName(characters, currentTest?.characterId || '')}
+          isFinished={isFinished}
+          isPlayingTape={isPlayingTape}
+          isPuzzleActive={isPuzzleActive}
+        />
 
         {/* Main Simulation Board Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start flex-1 mb-8">
+        <div className="theatre-mode__board grid grid-cols-1 lg:grid-cols-3 gap-6 items-start flex-1 mb-8">
           
-          {/* Left Column: Tapes, Timers & CCTV */}
+          {/* Audio and current run context */}
           <div className="flex flex-col gap-6 lg:col-span-1">
             {/* Cassette Deck */}
-            <CRTPanel className="p-4 flex flex-col gap-4">
+            <CRTPanel className="theatre-mode__tape p-4 flex flex-col gap-4">
               <span className="text-[10px] font-bold text-terminal-green border-b border-terminal-green/20 pb-1.5 uppercase select-none">
                 Narrative audio playback
               </span>
@@ -261,53 +240,6 @@ export const TheatreMode: React.FC = () => {
                 isPlaying={isPlayingTape}
                 onTogglePlay={toggleTapePlayback}
               />
-            </CRTPanel>
-
-            {/* CCTV Glitchy Camera Feed */}
-            <CRTPanel className="p-4 flex flex-col gap-3 overflow-hidden">
-              <div className="flex justify-between items-center text-[9px] text-terminal-green-dim font-bold border-b border-terminal-green/20 pb-1.5 uppercase select-none">
-                <span className="flex items-center gap-1.5">
-                  <Video size={12} className="text-terminal-red animate-pulse" />
-                  CCTV ROOM FEED
-                </span>
-                <span className="text-terminal-red flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-terminal-red animate-ping" />
-                  REC
-                </span>
-              </div>
-
-              <div className="relative aspect-video bg-black border border-terminal-metal overflow-hidden rounded cctv-glitch">
-                {/* Camera Static Overlay */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,black_95%)] z-10 pointer-events-none" />
-                
-                {/* CCTV Info text overlays */}
-                <div className="absolute top-2 left-2 z-10 font-mono text-[7px] text-terminal-green flex flex-col select-none">
-                  <span>{getCctvLabel()}</span>
-                  <span>{cctvTime}</span>
-                </div>
-                <div className="absolute bottom-2 right-2 z-10 font-mono text-[7px] text-terminal-green select-none">
-                  <span>SIGNAL: DECRYPTED</span>
-                </div>
-
-                {/* Central subject visual silhouette */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-40">
-                  <svg width="60%" height="60%" viewBox="0 0 100 100" fill="none" stroke="#39ff14" strokeWidth="1">
-                    {/* Outer target ring */}
-                    <circle cx="50" cy="50" r="40" strokeDasharray="3 3" />
-                    <path d="M 50 5 L 50 15 M 50 85 L 50 95 M 5 50 L 15 50 M 85 50 L 95 50" />
-                    
-                    {/* Silhouette posture representation */}
-                    <path d="M 50 25 C 55 25 58 30 58 35 C 58 42 53 45 50 48 C 47 45 42 42 42 35 C 42 30 45 25 50 25 Z" fill="none" strokeWidth="1.5" />
-                    <path d="M 25 80 C 35 60 40 52 50 52 C 60 52 65 60 75 80" fill="none" strokeWidth="1.5" strokeLinecap="round" />
-                    
-                    {/* Flashing scanner line */}
-                    <line x1="10" y1="50" x2="90" y2="50" strokeWidth="0.5" strokeDasharray="2 2" className="animate-bounce" />
-                  </svg>
-                </div>
-
-                {/* Scanning visual overlay */}
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(57,255,20,0.05)_50%,transparent_50%)] bg-[size:100%_4px] pointer-events-none z-10" />
-              </div>
             </CRTPanel>
 
             {/* Subject Vitals Telemetry */}
@@ -392,7 +324,11 @@ export const TheatreMode: React.FC = () => {
           </div>
 
           {/* Right Columns: Dialogue Typewriter, Decisions & Scores */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
+          <section id="theatre-stage-console" tabIndex={-1} aria-label="Current stage console" className="theatre-mode__console lg:col-span-2 flex flex-col gap-6">
+            <h2 className="theatre-mode__console-heading">
+              {isFinished ? 'Campaign outcome' : currentTest?.title || 'Stage console'}
+              <span>{isFinished ? 'Review the ending and save your case record.' : 'Listen to the tape, respond in the console, then choose your branch.'}</span>
+            </h2>
             
             {/* Transcript / Screen console */}
             <CRTPanel className="min-h-[220px] p-6 flex flex-col justify-between">
@@ -517,6 +453,7 @@ export const TheatreMode: React.FC = () => {
                             <div className="flex flex-col items-center gap-1">
                               <span className="text-[7.5px] text-c4cdc4/50 uppercase font-bold">YEAR</span>
                               <button
+                                aria-label="Increase year"
                                 onClick={() => setDialYear(prev => rotateValue(prev, years, 'up'))}
                                 className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
                               >
@@ -524,6 +461,7 @@ export const TheatreMode: React.FC = () => {
                               </button>
                               <span className="text-[10px] font-bold text-white font-mono bg-black px-2 py-0.5 border border-terminal-metal rounded">{dialYear}</span>
                               <button
+                                aria-label="Decrease year"
                                 onClick={() => setDialYear(prev => rotateValue(prev, years, 'down'))}
                                 className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
                               >
@@ -534,6 +472,7 @@ export const TheatreMode: React.FC = () => {
                             <div className="flex flex-col items-center gap-1">
                               <span className="text-[7.5px] text-c4cdc4/50 uppercase font-bold">MONTH</span>
                               <button
+                                aria-label="Increase month"
                                 onClick={() => setDialMonth(prev => rotateValue(prev, months, 'up'))}
                                 className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
                               >
@@ -541,6 +480,7 @@ export const TheatreMode: React.FC = () => {
                               </button>
                               <span className="text-[10px] font-bold text-white font-mono bg-black px-2 py-0.5 border border-terminal-metal rounded">{dialMonth}</span>
                               <button
+                                aria-label="Decrease month"
                                 onClick={() => setDialMonth(prev => rotateValue(prev, months, 'down'))}
                                 className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
                               >
@@ -551,6 +491,7 @@ export const TheatreMode: React.FC = () => {
                             <div className="flex flex-col items-center gap-1">
                               <span className="text-[7.5px] text-c4cdc4/50 uppercase font-bold">DAY</span>
                               <button
+                                aria-label="Increase day"
                                 onClick={() => setDialDay(prev => rotateValue(prev, days, 'up'))}
                                 className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
                               >
@@ -558,6 +499,7 @@ export const TheatreMode: React.FC = () => {
                               </button>
                               <span className="text-[10px] font-bold text-white font-mono bg-black px-2 py-0.5 border border-terminal-metal rounded">{dialDay}</span>
                               <button
+                                aria-label="Decrease day"
                                 onClick={() => setDialDay(prev => rotateValue(prev, days, 'down'))}
                                 className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
                               >
@@ -580,12 +522,13 @@ export const TheatreMode: React.FC = () => {
                         <div className="flex flex-col gap-3">
                           {/* 3D Perspective Mirror cards */}
                           <div className="perspective-container grid grid-cols-3 gap-4 my-2 select-none">
-                            {currentTest.puzzleData.confessionOptions?.map((opt: any, idx: number) => {
+                            {currentTest.puzzleData.confessionOptions?.map((opt, idx) => {
                               const mirrorClass = idx === 0 ? 'mirror-left' : idx === 1 ? 'mirror-center' : 'mirror-right';
                               const isSelected = puzzleInput === opt.id;
                               return (
                                 <button
                                   key={opt.id}
+                                  aria-pressed={isSelected}
                                   onClick={() => {
                                     sound.playClick();
                                     setPuzzleInput(opt.id);
@@ -680,6 +623,8 @@ export const TheatreMode: React.FC = () => {
                           <div className="flex flex-col gap-1.5 mt-2 select-none">
                             <input
                               type="range"
+                              aria-label="Transfer to workers fund"
+                              aria-valuetext={`${Number(puzzleInput || 0).toLocaleString()} dollars transferred`}
                               min="0"
                               max="250000"
                               step="10000"
@@ -869,23 +814,45 @@ export const TheatreMode: React.FC = () => {
               </div>
             )}
 
-          </div>
+          </section>
 
         </div>
 
         {/* Clues Modal Screen */}
         {showClues && currentTest && (
-          <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div
+            ref={clueDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="theatre-clues-heading"
+            tabIndex={-1}
+            onKeyDown={event => {
+              if (event.key !== 'Tab') return;
+              const buttons = clueDialogRef.current?.querySelectorAll<HTMLButtonElement>('button:not([disabled])');
+              if (!buttons?.length) return;
+              const first = buttons[0];
+              const last = buttons[buttons.length - 1];
+              if (event.shiftKey && (document.activeElement === first || document.activeElement === clueDialogRef.current)) {
+                event.preventDefault();
+                last.focus();
+              } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+              }
+            }}
+            className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 animate-fade-in"
+          >
             <div className="bg-terminal-metal border-2 border-terminal-green max-w-md w-full p-5 rounded shadow-lg crt-screen">
               <div className="scanline-overlay" />
               <div className="visual-noise-overlay" style={{ opacity: 0.15 }} />
               
               <div className="flex justify-between items-center border-b border-terminal-green/20 pb-2 mb-4 select-none">
-                <span className="text-xs font-bold text-terminal-green flex items-center gap-1.5 uppercase">
+                <h2 id="theatre-clues-heading" className="text-xs font-bold text-terminal-green flex items-center gap-1.5 uppercase">
                   <FileText size={14} />
                   Decrypted Archives Logs
-                </span>
+                </h2>
                 <button
+                  aria-label="Close clue archives"
                   onClick={() => setShowClues(false)}
                   className="text-c4cdc4/50 hover:text-white cursor-pointer"
                 >
@@ -941,6 +908,6 @@ export const TheatreMode: React.FC = () => {
 };
 
 // Helper character matcher
-function matchingCharacterName(chars: any[], charId: string) {
+function matchingCharacterName(chars: CharacterProfile[], charId: string) {
   return chars.find(c => c.id === charId)?.name;
 }

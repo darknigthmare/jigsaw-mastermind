@@ -15,6 +15,11 @@ An offline-first, local-first interactive writing studio and moral choice simula
 6. **Theatre Mode (Simulator)**: Run campaigns in a full-screen retro-styled terminal console with animated cassette reels, typing transcripts, Nixie-style timers, and dynamic moral score meters.
 7. **Local Vault Passphrase Protection**: Optionally encrypt stored JSON data in client-side storage using PBKDF2 key derivation and 256-bit AES-GCM (via standard Web Crypto API).
 8. **Writer's Room AI Prompts**: Pre-moderated LLM templates to paste into local offline models (like Ollama) to draft safe, high-quality campaigns.
+9. **Station de contrôle**: A first-person exploration game with three connected rooms and a short sequence of access and archive checks. Launch it from the control room.
+
+The station is an original setting. Recover a badge in the reception airlock, bring the relay online in the technical gallery, then restore the archive index to open the exit. On keyboard, use ZQSD or WASD to move, mouse or arrows to look, E to interact, and P or Escape to pause. On touchscreens, drag on the left to move and on the right to look. Use the on-screen buttons to interact or pause.
+
+The web build serves the station from `public/godot-station`. To edit the level natively, open `godot-fps/project.godot` in Godot 4.6.3. Install the matching Web export templates and run `npm run station:export` to rebuild the playable files. Set `GODOT_BIN` to use a specific executable, or `GODOT_RUNTIME_DIR` when the existing export templates are stored under that directory's `data/godot` tree.
 
 ## Tech Stack
 

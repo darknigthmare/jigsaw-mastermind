@@ -14,6 +14,7 @@ import * as sound from '../services/sound';
 import { checkTextSafety, autoRewrite } from '../services/safety';
 import { calculateNextScores, determineEnding, INITIAL_MORAL_SCORES } from '../services/moralEngine';
 import type { EndingDetails } from '../services/moralEngine';
+import { isPuzzleAnswerCorrect, resolveCampaignTests } from '../services/simulationRules';
 
 interface ActiveSimulation {
   campaign: Campaign;
@@ -338,8 +339,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     // Automatically associate test to campaign if not already there
     const campaign = campaigns.find(c => c.id === t.campaignId);
-    if (campaign && !campaign.testIds.includes(id)) {
-      updateCampaign(campaign.id, { testIds: [...campaign.testIds, id] });
+    if (campaign) {
+      const existingIds = resolveCampaignTests(campaign, tests).map(test => test.id);
+      updateCampaign(campaign.id, { testIds: [...existingIds, id] });
     }
 
     addLog(`TEST CHAMBER: Compiled test config: [${newTest.title}]`);
@@ -347,6 +349,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateTest = (id: string, t: Partial<SymbolicTest>) => {
+    const previousTest = tests.find(test => test.id === id);
     const updated = tests.map((item) => {
       if (item.id === id) {
         const merged = { ...item, ...t, updatedAt: new Date().toISOString() };
@@ -370,6 +373,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     setTests(updated);
     db.saveTests(updated);
+    const updatedTest = updated.find(test => test.id === id);
+    if (previousTest && updatedTest && previousTest.campaignId !== updatedTest.campaignId) {
+      const updatedCampaigns = campaigns.map(campaign => {
+        if (campaign.id === previousTest.campaignId) {
+          return {
+            ...campaign,
+            testIds: resolveCampaignTests(campaign, tests).filter(test => test.id !== id).map(test => test.id),
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        if (campaign.id === updatedTest.campaignId) {
+          return {
+            ...campaign,
+            testIds: [...resolveCampaignTests(campaign, tests).map(test => test.id), id],
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return campaign;
+      });
+      setCampaigns(updatedCampaigns);
+      db.saveCampaigns(updatedCampaigns);
+    }
     addLog(`TEST CHAMBER: Updated test config ID [${id}]`);
   };
 
@@ -377,6 +402,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const updated = tests.filter(t => t.id !== id);
     setTests(updated);
     db.saveTests(updated);
+    const updatedCampaigns = campaigns.map(campaign =>
+      Array.isArray(campaign.testIds) && campaign.testIds.includes(id)
+        ? { ...campaign, testIds: campaign.testIds.filter(testId => testId !== id), updatedAt: new Date().toISOString() }
+        : campaign
+    );
+    setCampaigns(updatedCampaigns);
+    db.saveCampaigns(updatedCampaigns);
     addLog(`TEST CHAMBER: Deleted test config ID [${id}]`);
   };
 
@@ -420,8 +452,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const campaign = campaigns.find(c => c.id === campaignId);
     if (!campaign) return;
 
-    // Filter tests that belong to this campaign
-    const campaignTests = tests.filter(t => t.campaignId === campaignId);
+    const campaignTests = resolveCampaignTests(campaign, tests);
     if (campaignTests.length === 0) {
       alert("No symbolic tests found for this campaign. Please create one in the Test Designer first.");
       return;
@@ -631,7 +662,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { tests: simTests, currentTestIndex, puzzleAttempts, timerLeft } = activeSimulation;
     const currentTest = simTests[currentTestIndex];
     
-    const isCorrect = currentTest.puzzleData.correctAnswer?.toLowerCase().trim() === answer.toLowerCase().trim();
+    const isCorrect = isPuzzleAnswerCorrect(currentTest, answer);
     
     if (isCorrect) {
       sound.playChime();

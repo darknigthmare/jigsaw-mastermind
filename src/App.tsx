@@ -9,9 +9,20 @@ import { LoreTimeline } from './views/LoreTimeline';
 import { WriterRoom } from './views/WriterRoom';
 import { Settings } from './views/Settings';
 import { TheatreMode } from './views/TheatreMode';
+import { StationMode } from './views/StationMode';
 
 const App: React.FC = () => {
   const { currentView } = useApp();
+  const [stationOpen, setStationOpen] = React.useState(false);
+
+  const closeStation = () => {
+    setStationOpen(false);
+    window.requestAnimationFrame(() => document.getElementById('station-launch')?.focus());
+  };
+
+  if (stationOpen) {
+    return <StationMode onExit={closeStation} />;
+  }
 
   // If in Theatre Mode, render full-screen simulation directly
   if (currentView === 'theatre') {
@@ -21,7 +32,7 @@ const App: React.FC = () => {
   const renderActiveView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onOpenStation={() => setStationOpen(true)} />;
       case 'campaigns':
       case 'campaign-new':
         return <CampaignBuilder />;
@@ -38,14 +49,16 @@ const App: React.FC = () => {
       case 'settings':
         return <Settings />;
       default:
-        return <Dashboard />;
+        return <Dashboard onOpenStation={() => setStationOpen(true)} />;
     }
   };
 
   return (
-    <AppShell>
-      {renderActiveView()}
-    </AppShell>
+    <div className="station-app-shell">
+      <AppShell>
+        {renderActiveView()}
+      </AppShell>
+    </div>
   );
 };
 

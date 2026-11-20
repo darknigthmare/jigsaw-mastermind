@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test": "vitest run",
+    "station:export": "bash scripts/export-station.sh",
     "preview": "vite preview"
   },
   "dependencies": {

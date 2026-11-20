@@ -1,0 +1,115 @@
+.station-launch-card,
+.station-view,
+.station-launch-card * {
+  box-sizing: border-box;
+}
+
+.station-launch-card {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2rem;
+  min-width: 0;
+  overflow: hidden;
+  padding: clamp(1.1rem, 3vw, 2rem);
+  border: 1px solid #47615d;
+  border-radius: 8px;
+  background: radial-gradient(ellipse at 90% 0, #24484370, transparent 62%), repeating-linear-gradient(90deg, transparent 0 39px, #b2e5ce06 39px 40px), #111d1c;
+  color: #e2eee7;
+  box-shadow: inset 0 1px #b9f8dc12, 0 12px 40px #0002;
+}
+
+.station-launch-copy { min-width: 0; }
+.station-eyebrow { display: flex; align-items: center; gap: .5rem; color: #a1d3bc; font-size: .625rem; font-weight: 700; letter-spacing: .12em; line-height: 1.6; }
+.station-eyebrow svg { flex-shrink: 0; }
+.station-launch-card h3 { margin: .7rem 0; font-size: clamp(1.5rem, 2.5vw, 2.15rem); font-weight: 800; line-height: 1.1; letter-spacing: -.045em; color: #f0f7ef; }
+.station-launch-copy > p { margin: 0; max-width: 42ch; color: #bbcdc3; font-size: .8rem; line-height: 1.7; }
+.station-launch-meta { display: flex; flex-wrap: wrap; gap: .45rem 1rem; margin: 1rem 0 1.3rem; color: #a1b7ac; font-size: .625rem; }
+.station-launch-meta span::before { content: '·'; color: #a2e6bf; margin-right: .45rem; }
+.station-primary-button,
+.station-secondary-button { display: inline-flex; justify-content: center; align-items: center; gap: .6rem; min-height: 44px; padding: .7rem 1rem; font: inherit; font-size: .75rem; line-height: 1.4; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background-color .15s, border-color .15s; }
+.station-primary-button { color: #102119; background: #b8edc9; border: 1px solid #d3f5da; }
+.station-primary-button:hover { background: #d6f8de; }
+.station-primary-button svg { flex-shrink: 0; }
+.station-primary-button:focus-visible,
+.station-secondary-button:focus-visible,
+.station-inline-retry:focus-visible,
+.station-controls summary:focus-visible { outline: 2px solid #e1f8c0; outline-offset: 4px; }
+.station-route { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; justify-content: center; gap: 1.3rem; min-width: 0; }
+.station-route li { display: flex; position: relative; align-items: center; gap: .9rem; min-width: 0; }
+.station-route li:not(:last-child)::after { content: ''; position: absolute; left: 22px; top: 46px; height: calc(100% - 22px); border-left: 1px dashed #7caa9566; }
+.station-route-icon { width: 45px; height: 45px; flex: 0 0 45px; border: 1px solid #66958470; background: #182e29; display: grid; place-items: center; color: #b7e3c9; border-radius: 5px; }
+.station-route li > div { min-width: 0; }
+.station-route small { display: block; color: #91b6a3; font-size: .625rem; letter-spacing: .08em; margin-bottom: .3rem; }
+.station-route strong { display: block; font-size: .75rem; line-height: 1.5; font-weight: 400; color: #e4eee5; }
+
+.station-view { min-height: 100svh; background: #0d1514; color: #d7e6dd; padding: 0 clamp(.7rem, 2.5vw, 2rem) 1.5rem; font-family: var(--font-mono, monospace); }
+.station-toolbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; padding: 1rem 0; background: #0d1514; border-bottom: 1px solid #344e43; }
+.station-toolbar-title { flex: 1; min-width: 180px; }
+.station-toolbar h1 { margin: .2rem 0 0; font-size: clamp(.95rem, 2vw, 1.15rem); font-weight: 700; color: #edf5ed; }
+.station-toolbar h1:focus { outline: none; }
+.station-toolbar-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.station-secondary-button { color: #d5e9dd; background: #182521; border: 1px solid #486153; }
+.station-secondary-button:hover { background: #253d31; border-color: #9bc3a8; }
+.station-exit { color: #e7f4dc; border-color: #71987d; }
+.station-loading-status { min-height: 48px; display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; padding: .7rem 0; font-size: .7rem; color: #b9cdbd; }
+.station-loading-status > svg { flex-shrink: 0; }
+.station-loading-status--ready { color: #b6e9ba; }
+.station-loading-status--error,
+.station-loading-status--delayed { color: #f0ce93; }
+.station-status-hint { font-size: .65rem; color: #b5c7ba; }
+.station-inline-retry { min-height: 36px; background: transparent; border: 1px solid #b28e55; color: #ffdda5; padding: .35rem .7rem; font: inherit; border-radius: 3px; cursor: pointer; }
+.station-stage { position: relative; width: 100%; height: clamp(360px, 66svh, 760px); min-width: 0; overflow: hidden; border: 1px solid #496458; border-radius: 5px; background: #080e0d; }
+.station-game-frame { display: block; border: 0; width: 100%; height: 100%; background: #080e0d; }
+.station-fullscreen-notice { font-size: .7rem; color: #e5ce9f; line-height: 1.6; }
+.station-field-guide { display: grid; grid-template-columns: minmax(210px, .8fr) minmax(0, 1.5fr); gap: 1.5rem; margin-top: 1.2rem; }
+.station-mission > p { margin: .5rem 0; color: #e0ece1; font-size: .75rem; line-height: 1.7; }
+.station-mission > p span { color: #a0caab; margin-inline: .1rem; }
+.station-mission > span:last-child { display: block; max-width: 44ch; color: #a9bdb0; font-size: .65rem; line-height: 1.7; }
+.station-controls { border: 1px solid #344e43; border-radius: 4px; padding: .8rem 1rem; }
+.station-controls summary { cursor: pointer; color: #dbeadd; font-size: .75rem; font-weight: 700; min-height: 24px; }
+.station-controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: .8rem; }
+.station-controls-grid p { display: flex; align-items: flex-start; gap: .6rem; margin: 0; font-size: .65rem; line-height: 1.8; color: #b7c8bc; }
+.station-controls-grid svg { color: #a4cbb0; flex-shrink: 0; margin-top: .15rem; }
+.station-controls-grid strong { color: #e6eee3; }
+.station-view:fullscreen { display: flex; flex-direction: column; height: 100dvh; overflow-y: auto; }
+.station-view:fullscreen .station-stage { flex: 1; min-height: 240px; }
+.station-spinner { animation: station-spin 1.2s linear infinite; }
+@keyframes station-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 900px) {
+  .station-launch-card { grid-template-columns: 1fr; gap: 1.6rem; }
+  .station-field-guide { grid-template-columns: 1fr; gap: 1rem; }
+}
+@media (max-width: 600px) {
+  .station-app-shell aside { width: 3.5rem; flex: 0 0 3.5rem; padding: .4rem; }
+  .station-app-shell aside > div:first-child { max-height: 100%; }
+  .station-app-shell aside > div:first-child > div,
+  .station-app-shell aside > div:not(:first-child) { display: none; }
+  .station-app-shell aside nav button { min-height: 44px; padding: .5rem; justify-content: center; }
+  .station-app-shell aside nav button span { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  .station-app-shell main { min-width: 0; padding: .75rem; }
+  .station-dashboard { min-width: 0; }
+  .station-dashboard > div:first-child h2 { flex-wrap: wrap; font-size: 1rem; }
+  .station-launch-card { padding: 1rem; }
+  .station-launch-card h3 { font-size: 1.6rem; }
+  .station-primary-button { width: 100%; padding-inline: .6rem; }
+  .station-launch-copy > p { font-size: .75rem; }
+  .station-route strong { font-size: .7rem; }
+  .station-toolbar { gap: .65rem; padding: .7rem 0; }
+  .station-toolbar-title { min-width: 0; flex-basis: calc(100% - 175px); }
+  .station-toolbar-title .station-eyebrow { font-size: .5rem; }
+  .station-toolbar-actions { width: 100%; }
+  .station-toolbar-actions > button { flex: 1; }
+  .station-secondary-button { font-size: .65rem; padding: .6rem .7rem; gap: .4rem; }
+  .station-controls-grid { grid-template-columns: 1fr; }
+  .station-stage { height: 62svh; min-height: 360px; }
+}
+@media (max-width: 360px) {
+  /* Keep the full in-game menu and its start button inside the canvas. */
+  .station-stage { min-height: 40rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .station-spinner { animation: none; }
+  .station-primary-button,
+  .station-secondary-button { transition: none; }
+}

@@ -1,0 +1,131 @@
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, CheckCircle2, Expand, Keyboard, LoaderCircle, RotateCcw, ScanLine, Smartphone } from 'lucide-react';
+import './StationMode.css';
+
+interface StationModeProps {
+  onExit: () => void;
+}
+
+type StationStatus = 'loading' | 'ready' | 'delayed' | 'error';
+
+const stationPath = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}godot-station/index.html`;
+
+export function StationMode({ onExit }: StationModeProps) {
+  const [attempt, setAttempt] = useState(0);
+  const [status, setStatus] = useState<StationStatus>('loading');
+  const [documentLoaded, setDocumentLoaded] = useState(false);
+  const [fullscreenNotice, setFullscreenNotice] = useState('');
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const viewRef = useRef<HTMLElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    let ready = false;
+    const frame = iframeRef.current;
+    const frameFailed = () => setStatus('error');
+    const timer = window.setTimeout(() => {
+      if (!ready) setStatus(current => current === 'loading' ? 'delayed' : current);
+    }, 45000);
+
+    const receiveReady = (event: MessageEvent<unknown>) => {
+      const frameWindow = iframeRef.current?.contentWindow;
+      if (!frameWindow || event.origin !== window.location.origin || event.source !== frameWindow) return;
+      const payload = event.data;
+      if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) return;
+      if (!('channel' in payload) || payload.channel !== 'jigsaw-station') return;
+      if (!('type' in payload) || payload.type !== 'ready') return;
+      ready = true;
+      window.clearTimeout(timer);
+      setStatus('ready');
+    };
+
+    window.addEventListener('message', receiveReady);
+    frame?.addEventListener('error', frameFailed);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('message', receiveReady);
+      frame?.removeEventListener('error', frameFailed);
+    };
+  }, [attempt]);
+
+  const restart = () => {
+    setStatus('loading');
+    setDocumentLoaded(false);
+    setAttempt(current => current + 1);
+  };
+
+  const leave = () => {
+    if (document.fullscreenElement && viewRef.current?.contains(document.fullscreenElement)) {
+      void document.exitFullscreen().catch(() => {});
+    }
+    document.exitPointerLock?.();
+    onExit();
+  };
+
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else if (viewRef.current?.requestFullscreen) await viewRef.current.requestFullscreen();
+      else setFullscreenNotice('Le plein écran n’est pas disponible ici. Vous pouvez jouer dans cette fenêtre.');
+    } catch {
+      setFullscreenNotice('Le plein écran n’a pas pu s’ouvrir. Vous pouvez jouer dans cette fenêtre.');
+    }
+  };
+
+  const statusText = status === 'ready' ? 'Station prête'
+    : status === 'error' ? 'Ouverture impossible'
+      : status === 'delayed' ? 'Chargement prolongé'
+        : documentLoaded ? 'Préparation de la station…' : 'Chargement de la station…';
+
+  return (
+    <section className="station-view" ref={viewRef} aria-labelledby="station-heading">
+      <header className="station-toolbar">
+        <button className="station-secondary-button station-exit" onClick={leave}><ArrowLeft size={17} aria-hidden="true" /><span>Tableau de bord</span></button>
+        <div className="station-toolbar-title"><span className="station-eyebrow">EXPÉRIENCE ORIGINALE</span><h1 id="station-heading" ref={headingRef} tabIndex={-1}>Station de contrôle</h1></div>
+        <div className="station-toolbar-actions">
+          <button className="station-secondary-button" onClick={() => void toggleFullscreen()}><Expand size={16} aria-hidden="true" /><span>Plein écran</span></button>
+          <button className="station-secondary-button" onClick={restart}><RotateCcw size={16} aria-hidden="true" /><span>Recommencer</span></button>
+        </div>
+      </header>
+
+      <div className={`station-loading-status station-loading-status--${status}`} role="status" aria-live="polite">
+        {status === 'ready' ? <CheckCircle2 size={16} aria-hidden="true" /> : status === 'loading' ? <LoaderCircle size={16} className="station-spinner" aria-hidden="true" /> : <ScanLine size={16} aria-hidden="true" />}
+        <span>{statusText}</span>
+        {status === 'delayed' && <span className="station-status-hint">Vous pouvez patienter ou réessayer.</span>}
+        {status === 'error' && <span className="station-status-hint">Réessayez ou revenez au tableau de bord.</span>}
+        {(status === 'error' || status === 'delayed') && <button className="station-inline-retry" onClick={restart}>Réessayer</button>}
+      </div>
+
+      <div className="station-stage" aria-busy={status === 'loading' || status === 'delayed'}>
+        <iframe
+          key={attempt}
+          ref={iframeRef}
+          className="station-game-frame"
+          src={stationPath}
+          title="Station de contrôle — exploration à la première personne"
+          loading="lazy"
+          allow="autoplay; fullscreen; gamepad"
+          allowFullScreen
+          onLoad={() => setDocumentLoaded(true)}
+        />
+      </div>
+
+      {fullscreenNotice && <p className="station-fullscreen-notice" role="status">{fullscreenNotice}</p>}
+
+      <div className="station-field-guide">
+        <div className="station-mission"><span className="station-eyebrow">VOTRE PARCOURS</span><p>Sas <span aria-hidden="true">→</span> Galerie technique <span aria-hidden="true">→</span> Archives</p><span>Badge, relais, index : chaque découverte vous rapproche de la sortie.</span></div>
+        <details className="station-controls" open>
+          <summary>Commandes</summary>
+          <div className="station-controls-grid">
+            <p><Keyboard size={18} aria-hidden="true" /><span><strong>ZQSD / WASD</strong> pour avancer · <strong>souris ou flèches</strong> pour regarder · <strong>E</strong> pour interagir · <strong>P / Échap</strong> pour la pause.</span></p>
+            <p><Smartphone size={18} aria-hidden="true" /><span><strong>Tactile :</strong> glissez sur la moitié gauche pour vous déplacer, sur la moitié droite pour regarder. Utilisez les boutons <strong>Examiner</strong> et <strong>Pause</strong>.</span></p>
+          </div>
+        </details>
+      </div>
+    </section>
+  );
+}
