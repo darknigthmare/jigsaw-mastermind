@@ -2,6 +2,8 @@
 
 An offline-first, local-first interactive writing studio and moral choice simulator inspired by the general psychological atmosphere, metronomic pacing, and ethical dilemmas of dark escape-room thrillers. 
 
+The [game design bible](docs/BIBLE_DU_JEU.md) records the gameplay, art and acceptance criteria. The [franchise register](docs/REFERENCES_FRANCHISE.md) records the film and official game sources used for editorial continuity.
+
 > [!IMPORTANT]
 > **Ethical & Safety Guardrails**: This application is strictly an interactive roleplay, writing utility, and fictional escape-room dashboard. It does not contain blueprints or descriptions of real-world mechanical hazards, weapons, physical injury, or surveillance systems. A built-in local Safety Layer actively sanitizes inputs to maintain a non-violent, symbolic narrative focus.
 
