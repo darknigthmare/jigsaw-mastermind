@@ -9,7 +9,7 @@
     "lint": "oxlint",
     "test": "vitest run",
     "station:export": "bash scripts/export-station.sh",
-    "station:test": "godot --headless --path godot-fps --script res://tests/station_route_test.gd",
+    "station:test": "bash scripts/test-station.sh",
     "preview": "vite preview"
   },
   "dependencies": {

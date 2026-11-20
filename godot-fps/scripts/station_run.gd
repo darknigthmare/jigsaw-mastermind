@@ -133,6 +133,7 @@ func _world_label(parent: Node3D, text: String, at: Vector3, font_size: int = 30
 	label.pixel_size = 0.004
 	label.outline_size = 6
 	label.modulate = Color("e3eee8")
+	label.double_sided = false
 	label.no_depth_test = false
 	parent.add_child(label)
 	return label
