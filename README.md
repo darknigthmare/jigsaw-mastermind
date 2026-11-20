@@ -12,18 +12,20 @@ An offline-first, local-first interactive writing studio and moral choice simula
 3. **Dossiers Sujets**: Define fictional participants, their moral deficiencies, greatest fears, and denial patterns.
 4. **Test Chamber (Test Designer)**: Create logic puzzles, branching choice decisions, countdown parameters, and delta score effects.
 5. **Tape Generator**: Compose Jigsaw-style cassette opening transcripts with cold, metadata-style metered prose.
-6. **Theatre Mode (Simulator)**: Run campaigns with illustrated rooms, an authored stage route, cassette transcripts, timers, and moral score meters. Stages without a dedicated room use one of five original workshop and archive settings, matched to the active puzzle.
+6. **Theatre Mode (Simulator)**: Run campaigns with illustrated rooms, an authored stage route, cassette transcripts, timers, and moral score meters. *Le Dernier Relais* follows the last handover at the Aulnes control center through three dedicated rooms and three possible endings. Stages without a dedicated room use one of five original settings matched to the active puzzle.
 7. **Local Vault Passphrase Protection**: Optionally encrypt stored JSON data in client-side storage using PBKDF2 key derivation and 256-bit AES-GCM (via standard Web Crypto API).
 8. **Writer's Room AI Prompts**: Pre-moderated LLM templates to paste into local offline models (like Ollama) to draft safe, high-quality campaigns.
-9. **Station de contrôle**: A first-person exploration game with a route through the reception airlock, technical gallery and archives. The maintenance workshop offers an optional passage between the gallery and archives. Launch it from the control room.
+9. **Station de contrôle**: A first-person exploration game through the reception airlock, technical gallery, archives and evacuation post. The maintenance workshop offers an optional passage between the gallery and archives. Launch it from the control room.
 
-The station is an original setting. Recover a badge in the reception airlock, bring a relay online in the technical gallery, then restore the archive index to open the exit. For the workshop route, read its register and inspect its indicator to open the side passage. The in-game plan and the map beside the web player show the route and confirmed objectives.
+Recover a badge in the reception airlock, bring a relay online in the technical gallery and restore the archive index to open the evacuation post. Confirm the protocol that matches the index before validating the exit. To take the workshop route, read its register and inspect its indicator to open the side passage. The in-game plan and the map beside the web player show the route and confirmed objectives.
+
+Choose a visit to explore freely or a challenge to evacuate within three minutes of play. Pausing stops the countdown. At the end, replay the current mode or return to mode selection.
 
 On keyboard, use ZQSD or WASD to move, mouse or arrows to look, E to interact, and P or Escape to pause. On touchscreens, drag on the left to move and on the right to look. Use the on-screen buttons to interact or pause.
 
 The web build serves the station from `public/godot-station`. To edit the level natively, open `godot-fps/project.godot` in Godot 4.6.3. Install the matching Web export templates and run `npm run station:export` to rebuild the playable files. Set `GODOT_BIN` to use a specific executable, or `GODOT_RUNTIME_DIR` when the existing export templates are stored under that directory's `data/godot` tree.
 
-`npm run station:test` checks both routes in Godot, including floor joins, passage clearance, interaction order, the completion summary, and reset. The test places a player at checkpoints to check physics and interactions independently of the browser controls.
+`npm run station:test` checks both routes in Godot, including floor joins, passage clearance, protocol selection, countdown, pause and replay. The test places a player at checkpoints to check physics and interactions independently of the browser controls.
 
 ## Tech Stack
 

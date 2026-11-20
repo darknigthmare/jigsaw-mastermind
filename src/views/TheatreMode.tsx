@@ -7,6 +7,7 @@ import { MoralScoreBars } from '../components/common/MoralScoreBars';
 import { TheatreScene } from '../components/common/TheatreScene';
 import type { CharacterProfile } from '../types';
 import { findGearPositions, getPuzzleControl } from '../services/simulationRules';
+import { DERNIER_RELAIS_CAMPAIGN } from '../services/dernierRelaisData';
 import * as sound from '../services/sound';
 import { Radio, AlertTriangle, FileText, ChevronRight, X, ArrowLeft } from 'lucide-react';
 
@@ -62,10 +63,10 @@ export const TheatreMode: React.FC = () => {
     };
   }, [showClues]);
 
-  // Play puppet laughter on mount to welcome the player
+  // The original handover story uses its own quiet audio introduction.
   useEffect(() => {
-    sound.playBillyLaughter();
-  }, []);
+    if (activeSimulation?.campaign.id !== DERNIER_RELAIS_CAMPAIGN.id) sound.playBillyLaughter();
+  }, [activeSimulation?.campaign.id]);
 
   // Keyboard shortcuts listener
   useEffect(() => {
@@ -148,6 +149,7 @@ export const TheatreMode: React.FC = () => {
   } = activeSimulation;
 
   const currentTest = tests[currentTestIndex];
+  const isDernierRelais = campaign.id === DERNIER_RELAIS_CAMPAIGN.id;
   const puzzleControl = getPuzzleControl(currentTest);
 
   // Helper to trigger download of case report
@@ -684,7 +686,7 @@ export const TheatreMode: React.FC = () => {
 
                       {puzzleControl.kind === 'coordinates' && (
                         <div className="flex flex-col gap-3">
-                          <span className="text-[8.5px] text-c4cdc4/50 font-bold uppercase select-none">BATHROOM FLOOR COORDINATE SCANNER:</span>
+                          <span className="text-[8.5px] text-c4cdc4/50 font-bold uppercase select-none">{isDernierRelais ? 'INVENTAIRE DES CASIERS DE L’ATELIER :' : 'BATHROOM FLOOR COORDINATE SCANNER:'}</span>
                           
                           <div className="grid grid-cols-3 gap-3 my-2 select-none">
                             {['A-1', 'A-2', 'A-3', 'B-1', 'B-2', 'B-3', 'C-1', 'C-2', 'C-3'].map((tile) => {
@@ -717,9 +719,9 @@ export const TheatreMode: React.FC = () => {
                                 : 'bg-terminal-metal border border-terminal-metal-light text-c4cdc4/25 cursor-not-allowed'
                             }`}
                           >
-                            SCAN SELECTED COORDINATE TILE
+                            {isDernierRelais ? 'Valider le casier' : 'SCAN SELECTED COORDINATE TILE'}
                           </button>
-                          {puzzleAttempts > 0 && <span className="text-terminal-red text-[9px] font-bold uppercase animate-pulse text-center block mt-1">! SCAN EMPTY - STEAM VENT DISCHARGE DETECTED</span>}
+                          {puzzleAttempts > 0 && <span className="text-terminal-red text-[9px] font-bold uppercase animate-pulse text-center block mt-1">{isDernierRelais ? 'Association non reconnue. Relisez l’inventaire puis réessayez.' : '! SCAN EMPTY - STEAM VENT DISCHARGE DETECTED'}</span>}
                         </div>
                       )}
                     </div>

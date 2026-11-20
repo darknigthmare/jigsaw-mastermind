@@ -15,6 +15,7 @@ import { checkTextSafety, autoRewrite } from '../services/safety';
 import { calculateNextScores, determineEnding, INITIAL_MORAL_SCORES } from '../services/moralEngine';
 import type { EndingDetails } from '../services/moralEngine';
 import { isPuzzleAnswerCorrect, requiresPuzzle, resolveCampaignTests } from '../services/simulationRules';
+import { getDernierRelaisEnding } from '../services/dernierRelaisData';
 
 interface ActiveSimulation {
   campaign: Campaign;
@@ -519,8 +520,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (isEndingTriggered) {
       // End simulation
-      const finalEndingType = choice.endingType || determineEnding(nextScores).type;
-      const endingDetails = determineEnding(nextScores);
+      const endingDetails = (!choice.endingType && getDernierRelaisEnding(campaign.id, nextDecisions)) || determineEnding(nextScores);
+      const finalEndingType = choice.endingType || endingDetails.type;
       
       const finishedSim: ActiveSimulation = {
         ...activeSimulation,

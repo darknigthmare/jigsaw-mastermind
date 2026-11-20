@@ -5,6 +5,26 @@ import {
   PRELOADED_TESTS,
   PRELOADED_LORE_EVENTS
 } from './preloadedData';
+import { DERNIER_RELAIS_CAMPAIGN, DERNIER_RELAIS_CHARACTERS, DERNIER_RELAIS_CONTENT_ID, DERNIER_RELAIS_TESTS } from './dernierRelaisData';
+
+export const CONTENT_INSTALLATIONS_KEY = 'jigsaw_content_installed';
+
+function contentInstallations(): string[] {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(CONTENT_INSTALLATIONS_KEY) || '[]');
+    return Array.isArray(value) && value.every(item => typeof item === 'string') ? value : [];
+  } catch {
+    return [];
+  }
+}
+
+function storedCollection<T>(key: string): T[] | undefined {
+  const raw = localStorage.getItem(key);
+  if (raw === null) return undefined;
+  const value: unknown = JSON.parse(raw);
+  if (!Array.isArray(value)) throw new Error(`Invalid saved collection: ${key}`);
+  return value as T[];
+}
 
 // Storage keys
 const KEYS = {
@@ -28,6 +48,11 @@ const DEFAULT_SETTINGS: UserSettings = {
 
 // Initialize DB with preloaded data if not exists
 export function initializeDB(): void {
+  // A locked vault is not a writable content library. Defer the new public
+  // content until the existing decrypt/import flow has restored the lists.
+  if (isVaultEncrypted()) return;
+  const installed = contentInstallations();
+  const needsRelay = !installed.includes(DERNIER_RELAIS_CONTENT_ID);
   if (!localStorage.getItem(KEYS.SETTINGS)) {
     localStorage.setItem(KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
   }
@@ -45,6 +70,22 @@ export function initializeDB(): void {
   }
   if (!localStorage.getItem(KEYS.RUNS)) {
     localStorage.setItem(KEYS.RUNS, JSON.stringify([]));
+  }
+  if (needsRelay) {
+    const additions: [string, { id: string }[]][] = [
+      [KEYS.CAMPAIGNS, [DERNIER_RELAIS_CAMPAIGN]],
+      [KEYS.CHARACTERS, DERNIER_RELAIS_CHARACTERS],
+      [KEYS.TESTS, DERNIER_RELAIS_TESTS],
+    ];
+    for (const [key, records] of additions) {
+      const current = storedCollection<{ id: string }>(key) ?? [];
+      const ids = new Set(current.map(item => item.id));
+      const missing = records.filter(item => !ids.has(item.id));
+      if (missing.length) localStorage.setItem(key, JSON.stringify([...current, ...missing]));
+    }
+    // Commit last. If a storage write fails, a later read can finish the pack
+    // by ID without replacing records already written or edited by the user.
+    localStorage.setItem(CONTENT_INSTALLATIONS_KEY, JSON.stringify([...installed, DERNIER_RELAIS_CONTENT_ID]));
   }
 }
 
@@ -70,6 +111,7 @@ export function saveToStorage<T>(key: string, data: T[]): void {
 
 // Campaign CRUD
 export function getCampaigns(): Campaign[] {
+  initializeDB();
   return getFromStorage<Campaign>(KEYS.CAMPAIGNS, PRELOADED_CAMPAIGNS);
 }
 
@@ -79,6 +121,7 @@ export function saveCampaigns(campaigns: Campaign[]): void {
 
 // Characters CRUD
 export function getCharacters(): CharacterProfile[] {
+  initializeDB();
   return getFromStorage<CharacterProfile>(KEYS.CHARACTERS, PRELOADED_CHARACTERS);
 }
 
@@ -88,6 +131,7 @@ export function saveCharacters(characters: CharacterProfile[]): void {
 
 // Tests CRUD
 export function getTests(): SymbolicTest[] {
+  initializeDB();
   return getFromStorage<SymbolicTest>(KEYS.TESTS, PRELOADED_TESTS);
 }
 
@@ -121,6 +165,7 @@ export interface BackupData {
   tests: SymbolicTest[];
   timeline: LoreEvent[];
   runs: SimulationRun[];
+  contentInstallations?: string[];
 }
 
 export function exportBackupJSON(): string {
@@ -130,7 +175,8 @@ export function exportBackupJSON(): string {
     characters: getCharacters(),
     tests: getTests(),
     timeline: getTimeline(),
-    runs: getRuns()
+    runs: getRuns(),
+    contentInstallations: contentInstallations()
   };
   return JSON.stringify(backup, null, 2);
 }
@@ -139,12 +185,18 @@ export function importBackupJSON(jsonStr: string): boolean {
   try {
     const backup: BackupData = JSON.parse(jsonStr);
     if (backup.settings && backup.campaigns && backup.characters && backup.tests && backup.timeline) {
+      if (backup.contentInstallations !== undefined && (!Array.isArray(backup.contentInstallations)
+        || !backup.contentInstallations.every(item => typeof item === 'string'))) return false;
       saveSettings(backup.settings);
       saveCampaigns(backup.campaigns);
       saveCharacters(backup.characters);
       saveTests(backup.tests);
       saveTimeline(backup.timeline);
       saveRuns(backup.runs || []);
+      // Replace rather than merge: an older backup must receive the new pack,
+      // while a newer backup's deliberate deletions must remain deleted.
+      localStorage.setItem(CONTENT_INSTALLATIONS_KEY, JSON.stringify(backup.contentInstallations ?? []));
+      initializeDB();
       return true;
     }
   } catch (e) {
@@ -204,7 +256,11 @@ export async function encryptVault(passphrase: string): Promise<boolean> {
     result.set(new Uint8Array(encryptedBytes), salt.byteLength + iv.byteLength);
     
     // Convert to Base64
-    const base64Str = btoa(String.fromCharCode(...result));
+    let binary = '';
+    for (let offset = 0; offset < result.length; offset += 32768) {
+      binary += String.fromCharCode(...result.subarray(offset, offset + 32768));
+    }
+    const base64Str = btoa(binary);
     
     // Save to local storage and clear plaintext
     localStorage.setItem(KEYS.ENCRYPTED_VAULT, base64Str);

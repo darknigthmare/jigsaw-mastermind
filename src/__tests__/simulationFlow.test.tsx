@@ -6,6 +6,7 @@ import { AppProvider, useApp } from '../context/AppContext';
 import type { Campaign, SymbolicTest } from '../types';
 import * as db from '../services/db';
 import { PRELOADED_CAMPAIGNS, PRELOADED_TESTS } from '../services/preloadedData';
+import { DERNIER_RELAIS_CONTENT_ID } from '../services/dernierRelaisData';
 
 vi.mock('../services/sound', () => ({
   startTapeHum: vi.fn(), stopTapeHum: vi.fn(), playClick: vi.fn(),
@@ -33,6 +34,7 @@ function chapter(id: string, campaignId = 'route-a'): SymbolicTest {
 }
 
 function prepare(campaigns: Campaign[], tests: SymbolicTest[]) {
+  localStorage.setItem(db.CONTENT_INSTALLATIONS_KEY, JSON.stringify([DERNIER_RELAIS_CONTENT_ID]));
   db.saveCampaigns(campaigns);
   db.saveTests(tests);
   return renderHook(() => useApp(), { wrapper: ({ children }: { children: ReactNode }) => <AppProvider>{children}</AppProvider> });
@@ -142,7 +144,7 @@ describe('Theatre saved chapter progression', () => {
     expect(solved.result.current.activeSimulation?.isPuzzleActive).toBe(false);
   });
 
-  it('completes all 71 preloaded steps without skipping their puzzles or rewriting the saved narrative', () => {
+  it('completes every preloaded step without skipping its puzzle or rewriting the saved narrative', () => {
     let completed = 0;
     for (const originalCampaign of PRELOADED_CAMPAIGNS) {
       localStorage.clear();
@@ -169,6 +171,6 @@ describe('Theatre saved chapter progression', () => {
       });
       unmount();
     }
-    expect(completed).toBe(71);
+    expect(completed).toBe(PRELOADED_TESTS.length);
   });
 });

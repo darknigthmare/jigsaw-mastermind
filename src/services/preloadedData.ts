@@ -1,4 +1,5 @@
 import type { Campaign, CharacterProfile, SymbolicTest, LoreEvent } from '../types';
+import { DERNIER_RELAIS_CAMPAIGN, DERNIER_RELAIS_CHARACTERS, DERNIER_RELAIS_TESTS } from './dernierRelaisData';
 
 export const PRELOADED_CHARACTERS: CharacterProfile[] = [
   {
@@ -288,7 +289,8 @@ export const PRELOADED_CHARACTERS: CharacterProfile[] = [
     notes: 'Tested in Spiral (2021).',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
-  }
+  },
+  ...DERNIER_RELAIS_CHARACTERS
 ];
 
 export const PRELOADED_CAMPAIGNS: Campaign[] = [
@@ -445,7 +447,8 @@ export const PRELOADED_CAMPAIGNS: Campaign[] = [
     testIds: ['test-ledger-room-1', 'test-glass-confession-1', 'test-quiet-scale-1'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
-  }
+  },
+  DERNIER_RELAIS_CAMPAIGN
 ];
 
 export const PRELOADED_TESTS: SymbolicTest[] = [
@@ -1923,7 +1926,8 @@ export const PRELOADED_TESTS: SymbolicTest[] = [
     safetyNote: 'Fictional simulation.',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
-  }
+  },
+  ...DERNIER_RELAIS_TESTS
 ];
 
 export const PRELOADED_LORE_EVENTS: LoreEvent[] = [

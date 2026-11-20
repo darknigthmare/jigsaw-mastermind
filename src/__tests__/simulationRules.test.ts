@@ -212,6 +212,6 @@ describe('puzzle controls match saved definitions', () => {
       const kind = getPuzzleControl(test).kind;
       counts[kind] = (counts[kind] ?? 0) + 1;
     }
-    expect(counts).toEqual({ date: 18, confession: 4, scale: 22, coordinates: 19, gears: 8 });
+    expect(counts).toEqual({ date: 19, confession: 4, scale: 22, coordinates: 20, gears: 8, answer: 1 });
   });
 });
