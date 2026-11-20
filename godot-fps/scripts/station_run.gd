@@ -15,6 +15,7 @@ var _gate_tweens: Array[Tween] = []
 var _stage: int = 0
 var _relay_choice: String = ""
 var _index_choice: String = ""
+var _workshop_stage: int = 0
 var _started: bool = false
 var _paused: bool = false
 var _finished: bool = false
@@ -32,6 +33,7 @@ var _cards: GridContainer
 var _card_labels: Array[Label] = []
 var _card_panels: Array[PanelContainer] = []
 var _compact_progress: Label
+var _workshop_note: Label
 var _hud_title: Label
 var _objective: Label
 var _clock: Label
@@ -137,8 +139,9 @@ func _world_label(parent: Node3D, text: String, at: Vector3, font_size: int = 30
 
 
 func _build_gameplay() -> void:
-	_make_gate("BADGE REQUIS · GALERIE", -7.0)
-	_make_gate("RELAIS REQUIS · ARCHIVES", -15.0)
+	_make_gate("BADGE REQUIS · GALERIE", -7.0, 0.0, "ACCÈS OUVERT · GALERIE")
+	_make_gate("RELAIS REQUIS · ARCHIVES", -15.0, 0.0, "ACCÈS OUVERT · ARCHIVES")
+	_make_gate("ATELIER · DIAGNOSTIC REQUIS", -15.0, 6.3, "ATELIER OUVERT · ARCHIVES")
 	_make_terminal("badge", "BADGE D’ACCÈS", "À RÉCUPÉRER", Vector3(-2.45, 0, -3.6))
 	_make_terminal("plan", "PLAN DE STATION", "CONSULTER", Vector3(2.45, 0, -3.6))
 	_make_terminal("relay_stable", "RELAIS · STABILITÉ", "ÉCLAIRAGE CONTINU", Vector3(-2.45, 0, -10.5))
@@ -146,12 +149,14 @@ func _build_gameplay() -> void:
 	_make_terminal("index_route", "INDEX · PARCOURS", "CLASSER PAR SALLE", Vector3(-2.45, 0, -19.0))
 	_make_terminal("index_inventory", "INDEX · INVENTAIRE", "CLASSER PAR FONCTION", Vector3(2.45, 0, -19.0))
 	_make_terminal("exit", "VALIDATION DE SORTIE", "INDEX REQUIS", Vector3(0, 0, -22.45))
+	_make_terminal("workshop_register", "ATELIER · REGISTRE", "RELAIS REQUIS", Vector3(7.55, 0, -10.6))
+	_make_terminal("workshop_witness", "ATELIER · TÉMOIN", "REGISTRE REQUIS", Vector3(7.55, 0, -13.5))
 
 
-func _make_gate(text: String, z: float) -> void:
+func _make_gate(text: String, z: float, x: float = 0.0, opened_text: String = "ACCÈS OUVERT") -> void:
 	var root := Node3D.new()
 	root.name = "AccessGate%d" % _gates.size()
-	root.position.z = z
+	root.position = Vector3(x, 0, z)
 	add_child(root)
 	var body := StaticBody3D.new()
 	body.position.y = 1.36
@@ -166,7 +171,7 @@ func _make_gate(text: String, z: float) -> void:
 	collision.shape = shape
 	body.add_child(collision)
 	var label := _world_label(root, text, Vector3(0, 2.35, 0.16), 30)
-	_gates.append({"body": body, "collision": collision, "label": label, "closed_text": text, "opened": false})
+	_gates.append({"body": body, "collision": collision, "label": label, "closed_text": text, "opened_text": opened_text, "opened": false})
 
 
 func _make_terminal(id: String, title: String, subtitle: String, at: Vector3) -> void:
@@ -233,7 +238,7 @@ func _interact() -> void:
 	var id: String = str(terminal["id"])
 	match id:
 		"plan":
-			_show_toast("SAS → GALERIE → ARCHIVES. Prenez le badge à gauche ; chaque objectif libère l’accès suivant.", 7.0)
+			_show_plan()
 		"badge":
 			if _stage == 0:
 				_stage = 1
@@ -253,7 +258,7 @@ func _interact() -> void:
 				_open_gate(1)
 				_apply_relay_lighting()
 				_emit_web("progress", "relais")
-				_show_toast("Relais " + _relay_choice + " activé. Archives ouvertes : choisissez un classement pour restaurer l’index.", 7.0)
+				_show_toast("Relais " + _relay_choice + " activé. Archives ouvertes : restaurez l’index. Option : atelier par la baie à droite.", 7.0)
 		"index_route", "index_inventory":
 			if _stage < 2:
 				_show_toast("Activez d’abord un relais dans la galerie.")
@@ -264,6 +269,27 @@ func _interact() -> void:
 				_stage = 3
 				_emit_web("progress", "index")
 				_show_toast("Index restauré " + _index_choice + ". Rejoignez la validation de sortie au fond des archives.", 7.0)
+		"workshop_register":
+			if _stage < 2:
+				_show_toast("Atelier facultatif : activez d’abord un relais dans la galerie.")
+			elif _workshop_stage == 0:
+				_workshop_stage = 1
+				_emit_web("progress", "registre")
+				_show_toast("Registre relevé : repère fictif ORION. Comparez le témoin au second pupitre de l’atelier.", 7.0)
+			else:
+				_show_toast("Registre déjà relevé : repère ORION. Le témoin porte le même repère.")
+		"workshop_witness":
+			if _stage < 2:
+				_show_toast("Le diagnostic facultatif attend l’activation d’un relais.")
+			elif _workshop_stage == 0:
+				_show_toast("Relevez d’abord le registre sur le premier pupitre de l’atelier.")
+			elif _workshop_stage == 1:
+				_workshop_stage = 2
+				_open_gate(2)
+				_emit_web("progress", "atelier")
+				_show_toast("Témoin ORION conforme au registre. Diagnostic complet : passage atelier ouvert vers les archives.", 7.0)
+			else:
+				_show_toast("Diagnostic déjà complet. Le passage atelier reste ouvert ; la route principale est inchangée.")
 		"exit":
 			if _stage < 3:
 				_show_toast("Sortie en attente : badge, relais et index doivent être validés.")
@@ -281,6 +307,8 @@ func _action_for(id: String) -> String:
 		"relay_eco": return "Choisir le relais économie" if _stage == 1 else "Consulter le relais économie"
 		"index_route": return "Restaurer l’index par salle" if _stage == 2 else "Consulter l’index par salle"
 		"index_inventory": return "Restaurer l’index par fonction" if _stage == 2 else "Consulter l’index par fonction"
+		"workshop_register": return "Relever le registre facultatif" if _workshop_stage == 0 else "Consulter le registre ORION"
+		"workshop_witness": return "Vérifier le témoin ORION" if _workshop_stage == 1 else "Consulter le diagnostic d’atelier"
 		"exit": return "Valider la sortie" if _stage == 3 else "Consulter l’accès de sortie"
 	return "Examiner"
 
@@ -297,7 +325,7 @@ func _open_gate(index: int) -> void:
 	tween.tween_property(body, "position:y", 4.24, 0.8).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_gate_tweens.append(tween)
 	var label: Label3D = gate["label"]
-	label.text = "ACCÈS OUVERT · " + ("GALERIE" if index == 0 else "ARCHIVES")
+	label.text = str(gate["opened_text"])
 	label.modulate = Color("a8e1c0")
 
 
@@ -335,6 +363,12 @@ func _refresh_terminals() -> void:
 				var selected: bool = (_index_choice == "par salle" and id == "index_route") or (_index_choice == "par fonction" and id == "index_inventory")
 				state = "RESTAURÉ · " + _index_choice.to_upper() if selected else ("AUTRE OPTION · NON RETENUE" if _stage > 2 else ("CHOISIR CE CLASSEMENT" if _stage == 2 else "RELAIS REQUIS"))
 				color = Color("9ed8b7") if selected else Color("98b3c2")
+			"workshop_register":
+				state = "RELEVÉ · REPÈRE ORION" if _workshop_stage > 0 else ("RELEVER LE REGISTRE" if _stage >= 2 else "RELAIS REQUIS · FACULTATIF")
+				color = Color("9ed8b7") if _workshop_stage > 0 else Color("bba77c")
+			"workshop_witness":
+				state = "DIAGNOSTIC COMPLET" if _workshop_stage == 2 else ("TÉMOIN ORION · VÉRIFIER" if _workshop_stage == 1 else ("RELEVEZ LE REGISTRE" if _stage >= 2 else "RELAIS REQUIS · FACULTATIF"))
+				color = Color("9ed8b7") if _workshop_stage == 2 else Color("98b3c2")
 			"exit":
 				state = "SORTIE VALIDÉE" if _finished else ("PRÊT · VALIDER LA SORTIE" if _stage >= 3 else "INDEX REQUIS")
 				color = Color("a7dfbc") if _stage >= 3 else Color("738f8c")
@@ -435,6 +469,8 @@ func _build_ui() -> void:
 	_compact_progress = _text("", 14, Color("a7d4ba"))
 	_compact_progress.visible = false
 	column.add_child(_compact_progress)
+	_workshop_note = _text("", 14, Color("a9c6ba"))
+	column.add_child(_workshop_note)
 	_toast = _text("", 16, Color("d8d7b5"))
 	_toast.visible = false
 	column.add_child(_toast)
@@ -495,18 +531,19 @@ func _build_ui() -> void:
 func _fit_ui() -> void:
 	if not is_instance_valid(_ui):
 		return
-	var width: float = get_viewport().get_visible_rect().size.x
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var width: float = viewport_size.x
 	var narrow: bool = width < 760
-	_compact_hud = narrow
-	_hud.size.x = minf(610.0, width - 40.0)
-	_hud_panel.custom_minimum_size.x = minf(610.0, width - 40.0)
-	_cards.columns = 2 if narrow else 4
-	_cards.visible = not narrow
-	_compact_progress.visible = narrow
-	_toast.visible = _toast_left > 0.0 and not narrow
-	_hud_title.add_theme_font_size_override("font_size", 14 if narrow else 18)
-	_clock.add_theme_font_size_override("font_size", 14 if narrow else 16)
-	_objective.add_theme_font_size_override("font_size", 16 if narrow else 18)
+	_compact_hud = narrow or viewport_size.y < 560.0
+	var hud_width := minf(440.0 if _compact_hud else 610.0, width - 40.0)
+	_hud.size.x = hud_width
+	_hud_panel.custom_minimum_size.x = hud_width
+	_cards.visible = not _compact_hud
+	_compact_progress.visible = _compact_hud
+	_toast.visible = _toast_left > 0.0 and not _compact_hud
+	_hud_title.add_theme_font_size_override("font_size", 14 if _compact_hud else 18)
+	_clock.add_theme_font_size_override("font_size", 14 if _compact_hud else 16)
+	_objective.add_theme_font_size_override("font_size", 16 if _compact_hud else 18)
 	_modal_panel.custom_minimum_size.x = minf(600.0, width - 40.0)
 	_action_panel.offset_left = -minf(210.0, width * 0.38)
 	_action_panel.offset_right = minf(210.0, width * 0.38)
@@ -558,6 +595,14 @@ func _refresh_progress() -> void:
 		_: _objective.text = "Tous les objectifs sont validés."
 	var step_labels: Array[String] = ["BADGE", "RELAIS", "INDEX", "SORTIE"]
 	_compact_progress.text = "ÉTAPE %d/4 · %s" % [mini(_stage + 1, 4), step_labels[mini(_stage, 3)]] if not _finished else "4/4 · ACCÈS VALIDÉ"
+	if _workshop_stage == 2:
+		_workshop_note.text = "Atelier · Diagnostic complet"
+	elif _workshop_stage == 1:
+		_workshop_note.text = "Option · Atelier : vérifiez le témoin."
+	elif _stage >= 2:
+		_workshop_note.text = "Option · Atelier à droite : registre."
+	else:
+		_workshop_note.text = "Option · Atelier après le relais."
 	_queue_hud_fit()
 
 
@@ -585,6 +630,16 @@ func _primary_action() -> void:
 
 func _restart_action() -> void:
 	_reset_run(true)
+
+
+func _show_plan() -> void:
+	_paused = true
+	_modal_title.text = "Plan de station"
+	_modal_body.text = "Badge → Relais → Index → Sortie.\n\nOption : après le relais, baie à droite vers l’atelier. Relevez le registre, puis vérifiez le témoin pour ouvrir son passage vers les archives.\n\nVous pouvez terminer sans ce détour."
+	_primary.text = "Reprendre"
+	_secondary.visible = false
+	_set_modal(true)
+	_emit_web("paused")
 
 
 func _toggle_pause() -> void:
@@ -629,6 +684,7 @@ func _reset_run(begin: bool) -> void:
 	_stage = 0
 	_relay_choice = ""
 	_index_choice = ""
+	_workshop_stage = 0
 	_elapsed = 0.0
 	_started = begin
 	_paused = false
@@ -671,7 +727,8 @@ func _finish_run() -> void:
 	_refresh_progress()
 	_refresh_terminals()
 	_modal_title.text = "Sortie validée"
-	_modal_body.text = "La station a retrouvé son accès. Les trois espaces et leurs registres sont prêts.\n\nRelais : %s\nIndex restauré : %s\nTemps de visite : %s\n\nVos choix sont inscrits dans ce bilan. Rejouer réinitialise toute la traversée." % [_relay_choice, _index_choice, _format_time(_elapsed)]
+	var workshop_result: String = "diagnostic complet" if _workshop_stage == 2 else ("registre relevé, témoin non vérifié" if _workshop_stage == 1 else "détour non effectué")
+	_modal_body.text = "La station a retrouvé son accès.\n\nRelais : %s\nIndex restauré : %s\nAtelier facultatif : %s\nTemps de visite : %s\n\nRejouer réinitialise toute la traversée." % [_relay_choice, _index_choice, workshop_result, _format_time(_elapsed)]
 	_primary.text = "Rejouer"
 	_secondary.visible = false
 	_set_modal(true)

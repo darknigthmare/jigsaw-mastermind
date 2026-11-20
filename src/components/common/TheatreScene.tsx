@@ -1,6 +1,8 @@
 import { useId, useState } from 'react';
 import { ArrowDown, Check, Eye, MapPin, ScanSearch } from 'lucide-react';
 import type { Campaign, SymbolicTest } from '../../types';
+import { TheatreWorkspace } from './TheatreWorkspace';
+import { getTheatreWorkspaceFamily } from './theatreWorkspaceData';
 import './TheatreScene.css';
 
 interface InspectionZone {
@@ -79,7 +81,7 @@ function SceneView({ scene }: { scene: OriginalScene }) {
   return (
     <>
       <div className="theatre-scene__visual">
-        <img className="theatre-scene__image" src={scene.image} alt={scene.imageDescription} />
+        <img className="theatre-scene__image" src={`${import.meta.env.BASE_URL}${scene.image.replace(/^\//, '')}`} alt={scene.imageDescription} />
         <div className="theatre-scene__image-label" aria-hidden="true"><Eye size={14} /> Room overview</div>
         {scene.zones.map((zone, index) => (
           <button
@@ -132,6 +134,7 @@ function SceneView({ scene }: { scene: OriginalScene }) {
 export function TheatreScene({ campaign, tests, currentTestIndex, completedTestIds, subjectName, isFinished, isPlayingTape, isPuzzleActive }: TheatreSceneProps) {
   const currentTest = tests[currentTestIndex];
   const scene = currentTest ? originalScenes[currentTest.id] : undefined;
+  const workspaceFamily = currentTest && !scene ? getTheatreWorkspaceFamily(currentTest.puzzleType) : undefined;
   const recordedCount = tests.filter(test => completedTestIds.includes(test.id)).length;
   const headingId = useId();
   const status = isFinished ? 'Run complete' : isPlayingTape ? 'Listen to the tape' : isPuzzleActive ? 'Stage console ready' : 'Decision ready';
@@ -140,7 +143,7 @@ export function TheatreScene({ campaign, tests, currentTestIndex, completedTestI
     <section className="theatre-scene" aria-labelledby={headingId}>
       <header className="theatre-scene__header">
         <div>
-          <span className="theatre-scene__eyebrow">{scene ? 'Original fiction · Scene study' : 'Campaign theatre'}</span>
+          <span className="theatre-scene__eyebrow">{scene ? 'Original fiction · Scene study' : workspaceFamily ? `Original theatre environment · ${workspaceFamily.label}` : 'Campaign theatre'}</span>
           <h1 id={headingId} tabIndex={-1}>{scene?.room ?? currentTest?.title ?? campaign.title}</h1>
           <p className="theatre-scene__location"><MapPin size={14} aria-hidden="true" /> {campaign.fictionalLocation || 'Campaign setting'}{scene && <span> / {scene.room}</span>}</p>
         </div>
@@ -151,19 +154,23 @@ export function TheatreScene({ campaign, tests, currentTestIndex, completedTestI
         </div>
       </header>
 
-      <div className={scene ? 'theatre-scene__room' : 'theatre-scene__fallback'}>
-        {scene ? <SceneView key={currentTest.id} scene={scene} /> : (
+      {scene ? (
+        <div className="theatre-scene__room"><SceneView key={currentTest.id} scene={scene} /></div>
+      ) : currentTest ? (
+        <TheatreWorkspace key={`${currentTest.id}-${currentTest.puzzleType}`} campaign={campaign} test={currentTest} subjectName={subjectName} isFinished={isFinished} isPlayingTape={isPlayingTape} isPuzzleActive={isPuzzleActive} />
+      ) : (
+        <div className="theatre-scene__fallback">
           <div>
             <span className="theatre-scene__eyebrow"><ScanSearch size={16} /> Stage brief</span>
-            <p>{currentTest?.puzzleData.question || currentTest?.rules || campaign.objective || 'Review the campaign record below.'}</p>
+            <p>{campaign.objective || 'Review the campaign record below.'}</p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="theatre-scene__context">
         <div><span className="theatre-scene__eyebrow">Active stage</span><h2>{currentTest?.title ?? (isFinished ? 'Run complete' : 'No stage available')}</h2></div>
         <div><span className="theatre-scene__eyebrow">Subject</span><p>{subjectName || 'Campaign participant'}</p></div>
-        <div><span className="theatre-scene__eyebrow">{scene ? 'Object to examine' : 'Focus'}</span><p>{scene?.object ?? currentTest?.moralTheme ?? campaign.moralTheme}</p></div>
+        <div><span className="theatre-scene__eyebrow">{scene || workspaceFamily ? 'Object to examine' : 'Focus'}</span><p>{scene?.object ?? workspaceFamily?.object ?? campaign.moralTheme}</p></div>
       </div>
 
       <nav className="theatre-scene__route" aria-label="Campaign stage route">
@@ -176,7 +183,7 @@ export function TheatreScene({ campaign, tests, currentTestIndex, completedTestI
             return (
               <li key={test.id} aria-current={active ? 'step' : undefined} className={active ? 'is-current' : completed ? 'is-complete' : ''}>
                 <span className="theatre-scene__route-number" aria-hidden="true">{completed ? <Check size={15} /> : String(index + 1).padStart(2, '0')}</span>
-                <div><span className="theatre-scene__route-state">{active ? 'You are here' : completed ? 'Recorded' : 'Ahead'}</span><strong>{test.title}</strong>{stageScene && <span className="theatre-scene__route-room">{stageScene.room}</span>}</div>
+                <div><span className="theatre-scene__route-state">{active ? 'You are here' : completed ? 'Recorded' : 'Ahead'}</span><strong>{test.title}</strong><span className="theatre-scene__route-room">{stageScene?.room ?? getTheatreWorkspaceFamily(test.puzzleType).room}</span></div>
               </li>
             );
           })}

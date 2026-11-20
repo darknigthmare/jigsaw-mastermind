@@ -6,6 +6,7 @@ import { TimerDisplay } from '../components/common/TimerDisplay';
 import { MoralScoreBars } from '../components/common/MoralScoreBars';
 import { TheatreScene } from '../components/common/TheatreScene';
 import type { CharacterProfile } from '../types';
+import { findGearPositions, getPuzzleControl } from '../services/simulationRules';
 import * as sound from '../services/sound';
 import { Radio, AlertTriangle, FileText, ChevronRight, X, ArrowLeft } from 'lucide-react';
 
@@ -25,20 +26,22 @@ export const TheatreMode: React.FC = () => {
   const clueDialogRef = useRef<HTMLDivElement>(null);
   const theatreRef = useRef<HTMLDivElement>(null);
 
-  // Local state for Logic Puzzle (Vault Dial combination lock)
-  const [dialYear, setDialYear] = useState('2022');
-  const [dialMonth, setDialMonth] = useState('01');
-  const [dialDay, setDialDay] = useState('01');
-
   // Local state for Gears Alignment Puzzle
   const [gearLeftClicks, setGearLeftClicks] = useState(0);
   const [gearRightClicks, setGearRightClicks] = useState(0);
+  const restoredGearStage = useRef('');
 
-  // Reset gears clicks when active test index shifts
+  // Restore the saved index once per stage; equivalent gear positions preserve
+  // the authored sum without overwriting a player's new rotations on each tick.
   useEffect(() => {
-    setGearLeftClicks(0);
-    setGearRightClicks(0);
-  }, [activeSimulation?.currentTestIndex]);
+    if (!activeSimulation) return;
+    const key = `${activeSimulation.campaign.id}:${activeSimulation.currentTestIndex}:${activeSimulation.puzzleAttempts}`;
+    if (restoredGearStage.current === key) return;
+    restoredGearStage.current = key;
+    const positions = findGearPositions(Number(activeSimulation.puzzleInput));
+    setGearLeftClicks(positions?.left ?? 0);
+    setGearRightClicks(positions?.right ?? 0);
+  }, [activeSimulation]);
 
   // A stage transition starts at the new room, rather than leaving the player
   // below its illustration at the previous stage's console scroll position.
@@ -145,6 +148,7 @@ export const TheatreMode: React.FC = () => {
   } = activeSimulation;
 
   const currentTest = tests[currentTestIndex];
+  const puzzleControl = getPuzzleControl(currentTest);
 
   // Helper to trigger download of case report
   const downloadReport = (filename: string, text: string) => {
@@ -168,23 +172,10 @@ export const TheatreMode: React.FC = () => {
     `---------------------------------------\n` +
     `This is a local fictional simulation. No real individuals were tested.` : '';
 
-  const rotateValue = (current: string, options: string[], direction: 'up' | 'down') => {
-    sound.playClick();
-    const idx = options.indexOf(current);
-    if (direction === 'up') {
-      return options[(idx + 1) % options.length];
-    } else {
-      return options[(idx - 1 + options.length) % options.length];
-    }
-  };
-
-  const years = ['2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-  const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-  const days = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
-
   // Mechanical balance scale dynamics
-  const scaleWeight = parseInt(puzzleInput) || 0;
-  const ratio = scaleWeight / 250000;
+  const scaleWeight = Number(puzzleInput) || 0;
+  const scaleMax = puzzleControl.kind === 'scale' ? puzzleControl.max : 250000;
+  const ratio = scaleWeight / scaleMax;
   const scaleAngle = (ratio - 0.5) * 36; // tilt between -18 and +18 degrees
   const leftY = scaleAngle * 1.2;
   const rightY = -scaleAngle * 1.2;
@@ -218,7 +209,7 @@ export const TheatreMode: React.FC = () => {
         <div className="theatre-mode__board grid grid-cols-1 lg:grid-cols-3 gap-6 items-start flex-1 mb-8">
           
           {/* Audio and current run context */}
-          <div className="flex flex-col gap-6 lg:col-span-1">
+          <div id="theatre-audio" className="flex flex-col gap-6 lg:col-span-1">
             {/* Cassette Deck */}
             <CRTPanel className="theatre-mode__tape p-4 flex flex-col gap-4">
               <span className="text-[10px] font-bold text-terminal-green border-b border-terminal-green/20 pb-1.5 uppercase select-none">
@@ -311,6 +302,7 @@ export const TheatreMode: React.FC = () => {
             {/* Decrypter Button */}
             {!isFinished && currentTest && (
               <button
+                id="theatre-clues-trigger"
                 onClick={() => {
                   sound.playBeep();
                   setShowClues(true);
@@ -410,7 +402,7 @@ export const TheatreMode: React.FC = () => {
                     </div>
                   ) : isPuzzleActive ? (
                     /* Interactive 2D SVG/HTML puzzles */
-                    <div className="bg-terminal-metal border border-terminal-metal-light p-5 rounded flex flex-col gap-4 font-mono text-xs">
+                    <div id="theatre-puzzle" className="bg-terminal-metal border border-terminal-metal-light p-5 rounded flex flex-col gap-4 font-mono text-xs">
                       <div className="flex items-center justify-between border-b border-terminal-metal-light pb-2 select-none">
                         <span className="font-extrabold text-terminal-green uppercase tracking-wider animate-pulse flex items-center gap-1.5">
                           <Radio size={14} />
@@ -425,100 +417,40 @@ export const TheatreMode: React.FC = () => {
                         {currentTest?.puzzleData?.question || 'Calibrate the terminal values to proceed.'}
                       </p>
 
-                      {currentTest?.puzzleType === 'logic' && (
-                        <div className="flex flex-col gap-3">
-                          {/* Circular vault lock SVG */}
-                          <div className="flex justify-center my-2 select-none">
-                            <svg width="150" height="150" viewBox="0 0 200 200">
-                              <circle cx="100" cy="100" r="90" fill="#151715" stroke="#2c322c" strokeWidth="5" />
-                              <circle cx="100" cy="100" r="82" fill="#060706" stroke="#39ff14" strokeWidth="0.8" strokeDasharray="3 3" />
-                              
-                              <circle cx="100" cy="100" r="62" fill="none" stroke="#222722" strokeWidth="6" />
-                              <circle cx="100" cy="100" r="46" fill="none" stroke="#181a18" strokeWidth="6" />
-                              <circle cx="100" cy="100" r="30" fill="none" stroke="#222722" strokeWidth="6" />
-                              
-                              {/* Lock indicator */}
-                              <polygon points="100,12 95,22 105,22" fill="#39ff14" />
-                              <line x1="100" y1="22" x2="100" y2="100" stroke="#39ff14" strokeWidth="0.5" strokeDasharray="2 2" />
-                              
-                              <rect x="50" y="86" width="100" height="28" rx="2" fill="#000" stroke="#39ff14" strokeWidth="1" />
-                              <text x="100" y="103" fill="#39ff14" fontSize="10" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
-                                {dialYear}-{dialMonth}-{dialDay}
-                              </text>
-                            </svg>
-                          </div>
-
-                          {/* Controls */}
-                          <div className="flex justify-around bg-black/40 border border-terminal-metal p-3 rounded select-none">
-                            <div className="flex flex-col items-center gap-1">
-                              <span className="text-[7.5px] text-c4cdc4/50 uppercase font-bold">YEAR</span>
-                              <button
-                                aria-label="Increase year"
-                                onClick={() => setDialYear(prev => rotateValue(prev, years, 'up'))}
-                                className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
-                              >
-                                ▲
-                              </button>
-                              <span className="text-[10px] font-bold text-white font-mono bg-black px-2 py-0.5 border border-terminal-metal rounded">{dialYear}</span>
-                              <button
-                                aria-label="Decrease year"
-                                onClick={() => setDialYear(prev => rotateValue(prev, years, 'down'))}
-                                className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
-                              >
-                                ▼
-                              </button>
+                      {(puzzleControl.kind === 'date' || puzzleControl.kind === 'answer') && (
+                        <form className="flex flex-col gap-3" onSubmit={event => { event.preventDefault(); if (puzzleInput.trim()) submitPuzzleAnswer(puzzleInput); }}>
+                          {puzzleControl.kind === 'date' && (
+                            <div className="flex justify-center my-2 select-none" aria-hidden="true">
+                              <svg width="150" height="150" viewBox="0 0 200 200">
+                                <circle cx="100" cy="100" r="90" fill="#151715" stroke="#2c322c" strokeWidth="5" />
+                                <circle cx="100" cy="100" r="82" fill="#060706" stroke="#39ff14" strokeDasharray="3 3" />
+                                <circle cx="100" cy="100" r="62" fill="none" stroke="#222722" strokeWidth="6" />
+                                <rect x="40" y="86" width="120" height="28" rx="2" fill="#000" stroke="#39ff14" />
+                                <text x="100" y="104" fill="#39ff14" fontSize="10" fontFamily="monospace" textAnchor="middle">{puzzleInput || '---- -- --'}</text>
+                              </svg>
                             </div>
-
-                            <div className="flex flex-col items-center gap-1">
-                              <span className="text-[7.5px] text-c4cdc4/50 uppercase font-bold">MONTH</span>
-                              <button
-                                aria-label="Increase month"
-                                onClick={() => setDialMonth(prev => rotateValue(prev, months, 'up'))}
-                                className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
-                              >
-                                ▲
-                              </button>
-                              <span className="text-[10px] font-bold text-white font-mono bg-black px-2 py-0.5 border border-terminal-metal rounded">{dialMonth}</span>
-                              <button
-                                aria-label="Decrease month"
-                                onClick={() => setDialMonth(prev => rotateValue(prev, months, 'down'))}
-                                className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
-                              >
-                                ▼
-                              </button>
-                            </div>
-
-                            <div className="flex flex-col items-center gap-1">
-                              <span className="text-[7.5px] text-c4cdc4/50 uppercase font-bold">DAY</span>
-                              <button
-                                aria-label="Increase day"
-                                onClick={() => setDialDay(prev => rotateValue(prev, days, 'up'))}
-                                className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
-                              >
-                                ▲
-                              </button>
-                              <span className="text-[10px] font-bold text-white font-mono bg-black px-2 py-0.5 border border-terminal-metal rounded">{dialDay}</span>
-                              <button
-                                aria-label="Decrease day"
-                                onClick={() => setDialDay(prev => rotateValue(prev, days, 'down'))}
-                                className="px-2 py-0.5 border border-terminal-green bg-terminal-green/5 text-terminal-green text-[9px] font-bold rounded cursor-pointer hover:bg-terminal-green hover:text-black"
-                              >
-                                ▼
-                              </button>
-                            </div>
-                          </div>
-
-                          <button
-                            onClick={() => submitPuzzleAnswer(`${dialYear}-${dialMonth}-${dialDay}`)}
-                            className="w-full bg-terminal-green border border-terminal-green text-black hover:bg-transparent hover:text-terminal-green py-2 font-bold font-mono rounded cursor-pointer transition-colors text-center text-xs select-none"
-                          >
-                            TEST LOCK OVERRIDE COMBINATION
+                          )}
+                          <label htmlFor="theatre-puzzle-answer" className="text-[10px] text-c4cdc4/70">
+                            {puzzleControl.kind === 'date' ? 'Date de calibration' : 'Réponse à l’énigme'}
+                          </label>
+                          <input id="theatre-puzzle-answer" type={puzzleControl.kind === 'date' ? 'date' : 'text'} required
+                            value={puzzleInput} onChange={event => setPuzzleInput(event.target.value)} autoComplete="off"
+                            className="w-full min-w-0 bg-black border border-terminal-metal p-3 text-xs text-white rounded" />
+                          {puzzleControl.kind === 'answer' && currentTest.puzzleData.items?.length ? (
+                            <div className="flex flex-wrap gap-2">{currentTest.puzzleData.items.map((item, index) => (
+                              <button key={`${index}:${item}`} type="button" onClick={() => setPuzzleInput(item)}
+                                className="min-w-0 max-w-full break-words text-left border border-terminal-metal p-2 rounded text-[10px] text-c4cdc4">{item}</button>
+                            ))}</div>
+                          ) : null}
+                          <button type="submit" disabled={!puzzleInput.trim()}
+                            className="w-full bg-terminal-green border border-terminal-green text-black py-2 font-bold rounded disabled:opacity-40 cursor-pointer">
+                            Valider la réponse
                           </button>
-                          {puzzleAttempts > 0 && <span className="text-terminal-red text-[9px] font-bold uppercase animate-pulse text-center block mt-1">! INVALID OVERRIDE TIMESTAMP VALUE RECEIVED</span>}
-                        </div>
+                          {puzzleAttempts > 0 && <span className="text-terminal-red text-[9px] font-bold text-center">Réponse incorrecte. Consultez les indices ou réessayez.</span>}
+                        </form>
                       )}
 
-                      {currentTest?.puzzleType === 'confession' && (
+                      {puzzleControl.kind === 'confession' && (
                         <div className="flex flex-col gap-3">
                           {/* 3D Perspective Mirror cards */}
                           <div className="perspective-container grid grid-cols-3 gap-4 my-2 select-none">
@@ -587,8 +519,11 @@ export const TheatreMode: React.FC = () => {
                         </div>
                       )}
 
-                      {currentTest?.puzzleType === 'sacrifice' && (
-                        <div className="flex flex-col gap-4">
+                      {puzzleControl.kind === 'scale' && (
+                        <form className="flex flex-col gap-4" onSubmit={event => {
+                          event.preventDefault();
+                          if (puzzleInput.trim() && Number.isFinite(Number(puzzleInput)) && Number(puzzleInput) >= 0 && Number(puzzleInput) <= scaleMax) submitPuzzleAnswer(puzzleInput);
+                        }}>
                           {/* Tilting mechanical scale SVG */}
                           <div className="flex justify-center my-2 select-none">
                             <svg width="240" height="150" viewBox="0 0 300 200">
@@ -626,8 +561,8 @@ export const TheatreMode: React.FC = () => {
                               aria-label="Transfer to workers fund"
                               aria-valuetext={`${Number(puzzleInput || 0).toLocaleString()} dollars transferred`}
                               min="0"
-                              max="250000"
-                              step="10000"
+                              max={puzzleControl.max}
+                              step="any"
                               value={puzzleInput || '0'}
                               onChange={(e) => {
                                 sound.playClick();
@@ -637,21 +572,25 @@ export const TheatreMode: React.FC = () => {
                             />
                             <div className="flex justify-between text-[7.5px] text-c4cdc4/40 uppercase">
                               <span>Keep Bonus ($0)</span>
-                              <span>Transfer to Workers ($250,000)</span>
+                              <span>Transfer to Workers (${puzzleControl.max.toLocaleString()})</span>
                             </div>
+                            <label htmlFor="theatre-scale-value" className="text-[10px] text-c4cdc4/70">Valeur exacte</label>
+                            <input id="theatre-scale-value" type="number" min="0" max={scaleMax} step="any" required value={puzzleInput}
+                              onChange={event => setPuzzleInput(event.target.value)}
+                              className="w-full min-w-0 bg-black border border-terminal-metal p-2 text-xs text-white rounded" />
                           </div>
 
                           <button
-                            onClick={() => submitPuzzleAnswer(puzzleInput)}
+                            type="submit"
                             className="w-full bg-terminal-green text-black border border-terminal-green hover:bg-transparent hover:text-terminal-green py-2 font-bold font-mono rounded cursor-pointer transition-colors text-center text-xs select-none"
                           >
                             CALIBRATE SCALES BALANCE
                           </button>
                           {puzzleAttempts > 0 && <span className="text-terminal-red text-[9px] font-bold uppercase animate-pulse text-center block mt-1">! DEFICIT BALANCE ENCOUNTERED - ESCAPE ROUTE SECURED</span>}
-                        </div>
+                        </form>
                       )}
 
-                      {currentTest?.puzzleType === 'maze' && (
+                      {puzzleControl.kind === 'gears' && (
                         <div className="flex flex-col gap-3">
                           {/* Gears rotation alignment rendering */}
                           <div className="flex justify-center items-center gap-6 my-2 select-none">
@@ -678,7 +617,9 @@ export const TheatreMode: React.FC = () => {
                                 type="button"
                                 onClick={() => {
                                   sound.playClick();
-                                  setGearLeftClicks(prev => (prev + 1) % 8);
+                                  const next = (gearLeftClicks + 1) % 8;
+                                  setGearLeftClicks(next);
+                                  setPuzzleInput(String(next * 3 + gearRightClicks * 2));
                                 }}
                                 className="px-3 py-1 border border-terminal-green bg-terminal-green/5 text-terminal-green hover:bg-terminal-green hover:text-black font-bold text-[9px] rounded cursor-pointer"
                               >
@@ -709,7 +650,9 @@ export const TheatreMode: React.FC = () => {
                                 type="button"
                                 onClick={() => {
                                   sound.playClick();
-                                  setGearRightClicks(prev => (prev + 1) % 6);
+                                  const next = (gearRightClicks + 1) % 6;
+                                  setGearRightClicks(next);
+                                  setPuzzleInput(String(gearLeftClicks * 3 + next * 2));
                                 }}
                                 className="px-3 py-1 border border-terminal-green bg-terminal-green/5 text-terminal-green hover:bg-terminal-green hover:text-black font-bold text-[9px] rounded cursor-pointer"
                               >
@@ -722,8 +665,8 @@ export const TheatreMode: React.FC = () => {
                           <div className="bg-black/60 border border-terminal-metal p-3 rounded flex justify-between items-center select-none font-mono">
                             <div className="flex flex-col gap-0.5">
                               <span className="text-[8px] text-c4cdc4/50 font-bold uppercase">Alignment ratio</span>
-                              <span className={`text-xs font-bold ${gearLeftClicks * 3 + gearRightClicks * 2 === 15 ? 'text-terminal-green' : 'text-terminal-red'}`}>
-                                {gearLeftClicks * 3 + gearRightClicks * 2} / 15 index
+                              <span className={`text-xs font-bold ${gearLeftClicks * 3 + gearRightClicks * 2 === puzzleControl.target ? 'text-terminal-green' : 'text-terminal-red'}`}>
+                                {gearLeftClicks * 3 + gearRightClicks * 2} / {puzzleControl.target} index
                               </span>
                             </div>
                             <span className="text-[9px] text-c4cdc4/40 uppercase">Target: Gear alignment matches marker</span>
@@ -733,13 +676,13 @@ export const TheatreMode: React.FC = () => {
                             onClick={() => submitPuzzleAnswer(String(gearLeftClicks * 3 + gearRightClicks * 2))}
                             className="w-full bg-terminal-green border border-terminal-green text-black hover:bg-transparent hover:text-terminal-green py-2 font-bold font-mono rounded cursor-pointer transition-colors text-center text-xs select-none"
                           >
-                            DISARM REVERSE BEAR LOCKWAY
+                            Valider l’alignement
                           </button>
                           {puzzleAttempts > 0 && <span className="text-terminal-red text-[9px] font-bold uppercase animate-pulse text-center block mt-1">! GEAR PRESSURE CRITICAL - LOCKWAY MISALIGNED</span>}
                         </div>
                       )}
 
-                      {currentTest?.puzzleType === 'choice' && (
+                      {puzzleControl.kind === 'coordinates' && (
                         <div className="flex flex-col gap-3">
                           <span className="text-[8.5px] text-c4cdc4/50 font-bold uppercase select-none">BATHROOM FLOOR COORDINATE SCANNER:</span>
                           

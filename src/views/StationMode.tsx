@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, CheckCircle2, Expand, Keyboard, LoaderCircle, RotateCcw, ScanLine, Smartphone } from 'lucide-react';
+import { initialStationProgress, updateStationProgress } from '../services/stationProgress';
+import { StationPlan } from './StationPlan';
 import './StationMode.css';
 
 interface StationModeProps {
@@ -14,6 +16,7 @@ export function StationMode({ onExit }: StationModeProps) {
   const [attempt, setAttempt] = useState(0);
   const [status, setStatus] = useState<StationStatus>('loading');
   const [documentLoaded, setDocumentLoaded] = useState(false);
+  const [progress, setProgress] = useState(initialStationProgress);
   const [fullscreenNotice, setFullscreenNotice] = useState('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const viewRef = useRef<HTMLElement>(null);
@@ -31,23 +34,26 @@ export function StationMode({ onExit }: StationModeProps) {
       if (!ready) setStatus(current => current === 'loading' ? 'delayed' : current);
     }, 45000);
 
-    const receiveReady = (event: MessageEvent<unknown>) => {
+    const receiveGameStatus = (event: MessageEvent<unknown>) => {
       const frameWindow = iframeRef.current?.contentWindow;
       if (!frameWindow || event.origin !== window.location.origin || event.source !== frameWindow) return;
       const payload = event.data;
       if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) return;
       if (!('channel' in payload) || payload.channel !== 'jigsaw-station') return;
-      if (!('type' in payload) || payload.type !== 'ready') return;
-      ready = true;
-      window.clearTimeout(timer);
-      setStatus('ready');
+      if ('type' in payload && payload.type === 'ready') {
+        ready = true;
+        window.clearTimeout(timer);
+        setStatus('ready');
+      } else if (ready) {
+        setProgress(current => updateStationProgress(current, payload));
+      }
     };
 
-    window.addEventListener('message', receiveReady);
+    window.addEventListener('message', receiveGameStatus);
     frame?.addEventListener('error', frameFailed);
     return () => {
       window.clearTimeout(timer);
-      window.removeEventListener('message', receiveReady);
+      window.removeEventListener('message', receiveGameStatus);
       frame?.removeEventListener('error', frameFailed);
     };
   }, [attempt]);
@@ -55,6 +61,7 @@ export function StationMode({ onExit }: StationModeProps) {
   const restart = () => {
     setStatus('loading');
     setDocumentLoaded(false);
+    setProgress(initialStationProgress);
     setAttempt(current => current + 1);
   };
 
@@ -92,12 +99,13 @@ export function StationMode({ onExit }: StationModeProps) {
         </div>
       </header>
 
-      <div className={`station-loading-status station-loading-status--${status}`} role="status" aria-live="polite">
+      <div className={`station-loading-status station-loading-status--${status}`}>
         {status === 'ready' ? <CheckCircle2 size={16} aria-hidden="true" /> : status === 'loading' ? <LoaderCircle size={16} className="station-spinner" aria-hidden="true" /> : <ScanLine size={16} aria-hidden="true" />}
-        <span>{statusText}</span>
+        <span role="status">{statusText}</span>
         {status === 'delayed' && <span className="station-status-hint">Vous pouvez patienter ou réessayer.</span>}
         {status === 'error' && <span className="station-status-hint">Réessayez ou revenez au tableau de bord.</span>}
         {(status === 'error' || status === 'delayed') && <button className="station-inline-retry" onClick={restart}>Réessayer</button>}
+        <a className="station-plan-link" href="#station-plan">Plan de la station</a>
       </div>
 
       <div className="station-stage" aria-busy={status === 'loading' || status === 'delayed'}>
@@ -117,7 +125,7 @@ export function StationMode({ onExit }: StationModeProps) {
       {fullscreenNotice && <p className="station-fullscreen-notice" role="status">{fullscreenNotice}</p>}
 
       <div className="station-field-guide">
-        <div className="station-mission"><span className="station-eyebrow">VOTRE PARCOURS</span><p>Sas <span aria-hidden="true">→</span> Galerie technique <span aria-hidden="true">→</span> Archives</p><span>Badge, relais, index : chaque découverte vous rapproche de la sortie.</span></div>
+        <StationPlan progress={progress} />
         <details className="station-controls" open>
           <summary>Commandes</summary>
           <div className="station-controls-grid">

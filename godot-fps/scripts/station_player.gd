@@ -78,8 +78,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("station_interact") and not event.is_echo():
 		interaction_requested.emit()
-	elif event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		_turn(event.relative * MOUSE_SENSITIVITY)
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		if not _is_touch_screen() and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -92,6 +90,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_turn(event.relative * TOUCH_SENSITIVITY)
 
 func _input(event: InputEvent) -> void:
+	# A captured cursor keeps its last position. The HUD can consume motion when
+	# that position is over a button, so FPS look must run before GUI dispatch.
+	if _controls_enabled and event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		_turn(event.screen_relative * MOUSE_SENSITIVITY)
+		get_viewport().set_input_as_handled()
+		return
 	# A finger released over the GUI may not reach _unhandled_input.
 	if event is InputEventScreenTouch and not event.pressed:
 		_track_touch(event)

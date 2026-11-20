@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SymbolicTest } from '../types';
 import { PRELOADED_CAMPAIGNS, PRELOADED_TESTS } from '../services/preloadedData';
-import { isPuzzleAnswerCorrect, resolveCampaignTests } from '../services/simulationRules';
+import { findGearPositions, getPuzzleControl, isPuzzleAnswerCorrect, requiresPuzzle, resolveCampaignTests } from '../services/simulationRules';
 
 function chapter(id: string, campaignId = 'original-route'): SymbolicTest {
   return { ...PRELOADED_TESTS[0], id, campaignId, title: `Saved chapter ${id}` };
@@ -171,5 +171,47 @@ describe('historical sacrifice slider instructions', () => {
       expect(isPuzzleAnswerCorrect(test, '140000'), test.id).toBe(false);
       expect(JSON.stringify(test), test.id).toBe(original);
     }
+  });
+});
+
+describe('puzzle controls match saved definitions', () => {
+  it('distinguishes a direct branching choice from a coordinate puzzle before the branch', () => {
+    expect(requiresPuzzle({ puzzleType: 'choice', puzzleData: {} })).toBe(false);
+    expect(getPuzzleControl({ puzzleType: 'choice', puzzleData: {} }).kind).toBe('branch');
+    expect(requiresPuzzle({ puzzleType: 'choice', puzzleData: { correctAnswer: 'B-3' } })).toBe(true);
+    expect(getPuzzleControl({ puzzleType: 'choice', puzzleData: { correctAnswer: 'B-3' } }).kind).toBe('coordinates');
+    expect(getPuzzleControl({ puzzleType: 'choice', puzzleData: { correctAnswer: 'D-4' } }).kind).toBe('answer');
+  });
+
+  it('provides a real date control for valid dates of any year and free input for text or non-calendar codes', () => {
+    expect(getPuzzleControl({ puzzleType: 'logic', puzzleData: { correctAnswer: '2038-06-21' } }).kind).toBe('date');
+    expect(getPuzzleControl({ puzzleType: 'logic', puzzleData: { correctAnswer: 'relay-blue' } }).kind).toBe('answer');
+    expect(getPuzzleControl({ puzzleType: 'logic', puzzleData: { correctAnswer: '2025-02-30' } }).kind).toBe('answer');
+  });
+
+  it('uses the authored gear target only if the actual controls can reach it', () => {
+    expect(getPuzzleControl({ puzzleType: 'maze', puzzleData: { correctAnswer: '13' } })).toEqual({ kind: 'gears', target: 13 });
+    expect(getPuzzleControl({ puzzleType: 'maze', puzzleData: { correctAnswer: '100' } }).kind).toBe('answer');
+    expect(getPuzzleControl({ puzzleType: 'maze', puzzleData: { correctAnswer: '1' } }).kind).toBe('answer');
+    const saved = findGearPositions(17)!;
+    expect(saved.left * 3 + saved.right * 2).toBe(17);
+  });
+
+  it('keeps exact custom scale targets in range and falls back to text for literal nonnumeric answers', () => {
+    const control = getPuzzleControl({ puzzleType: 'sacrifice', puzzleData: { correctAnswer: '380005.5' } });
+    expect(control.kind).toBe('scale');
+    if (control.kind === 'scale') expect(control.max).toBeGreaterThanOrEqual(380005.5);
+    expect(getPuzzleControl({ puzzleType: 'sacrifice', puzzleData: { correctAnswer: '050' } }).kind).toBe('answer');
+    expect(getPuzzleControl({ puzzleType: 'sacrifice', puzzleData: { correctAnswer: 'approved' } }).kind).toBe('answer');
+  });
+
+  it('gives every current preloaded step a reachable mechanism without skipping the configured choice puzzles', () => {
+    const counts: Record<string, number> = {};
+    for (const test of PRELOADED_TESTS) {
+      expect(requiresPuzzle(test), test.id).toBe(true);
+      const kind = getPuzzleControl(test).kind;
+      counts[kind] = (counts[kind] ?? 0) + 1;
+    }
+    expect(counts).toEqual({ date: 18, confession: 4, scale: 22, coordinates: 19, gears: 8 });
   });
 });

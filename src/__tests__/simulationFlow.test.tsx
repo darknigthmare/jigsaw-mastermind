@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppProvider, useApp } from '../context/AppContext';
 import type { Campaign, SymbolicTest } from '../types';
 import * as db from '../services/db';
+import { PRELOADED_CAMPAIGNS, PRELOADED_TESTS } from '../services/preloadedData';
 
 vi.mock('../services/sound', () => ({
   startTapeHum: vi.fn(), stopTapeHum: vi.fn(), playClick: vi.fn(),
@@ -121,5 +122,53 @@ describe('Theatre saved chapter progression', () => {
     act(() => restored.result.current.submitPuzzleAnswer('80000'));
     expect(restored.result.current.activeSimulation?.isPuzzleSolved).toBe(true);
     expect(restored.result.current.activeSimulation?.decisions).toEqual([]);
+  });
+
+  it('restores an unfinished legacy choice snapshot with its configured scanner active and preserves solved snapshots', () => {
+    const test: SymbolicTest = { ...chapter('coordinate'), puzzleData: { correctAnswer: 'B-3' } };
+    const initial = prepare([campaign('route-a', ['coordinate'])], [test]);
+    act(() => initial.result.current.startSimulation('route-a'));
+    const snapshot = JSON.parse(localStorage.getItem('jigsaw_active_sim')!);
+    initial.unmount();
+    snapshot.isPuzzleActive = false;
+    localStorage.setItem('jigsaw_active_sim', JSON.stringify(snapshot));
+    const restored = prepare([campaign('route-a', ['coordinate'])], [test]);
+    expect(restored.result.current.activeSimulation?.isPuzzleActive).toBe(true);
+    act(() => restored.result.current.submitPuzzleAnswer('B-3'));
+    expect(restored.result.current.activeSimulation?.isPuzzleActive).toBe(false);
+    restored.unmount();
+    const solved = prepare([campaign('route-a', ['coordinate'])], [test]);
+    expect(solved.result.current.activeSimulation?.isPuzzleSolved).toBe(true);
+    expect(solved.result.current.activeSimulation?.isPuzzleActive).toBe(false);
+  });
+
+  it('completes all 71 preloaded steps without skipping their puzzles or rewriting the saved narrative', () => {
+    let completed = 0;
+    for (const originalCampaign of PRELOADED_CAMPAIGNS) {
+      localStorage.clear();
+      const originalTests = PRELOADED_TESTS.filter(test => test.campaignId === originalCampaign.id);
+      const { result, unmount } = prepare([originalCampaign], originalTests);
+      act(() => result.current.startSimulation(originalCampaign.id));
+      for (const id of originalCampaign.testIds) {
+        const simulation = result.current.activeSimulation!;
+        const test = simulation.tests[simulation.currentTestIndex];
+        expect(test.id, id).toBe(id);
+        expect(simulation.isPuzzleActive, id).toBe(true);
+        const answer = test.puzzleData.correctAnswer ?? (test.puzzleType === 'confession' ? 'B-2' : '180000');
+        act(() => result.current.submitPuzzleAnswer(answer));
+        expect(result.current.activeSimulation?.isPuzzleSolved, id).toBe(true);
+        act(() => result.current.submitChoice(test.choices[0].id));
+        completed += 1;
+      }
+      expect(result.current.activeSimulation?.isFinished, originalCampaign.id).toBe(true);
+      expect(result.current.activeSimulation?.decisions, originalCampaign.id).toHaveLength(originalCampaign.testIds.length);
+      expect(db.getTests()).toEqual(originalTests);
+      expect(db.getCampaigns()[0]).toMatchObject({
+        title: originalCampaign.title, objective: originalCampaign.objective,
+        fictionalLocation: originalCampaign.fictionalLocation, testIds: originalCampaign.testIds,
+      });
+      unmount();
+    }
+    expect(completed).toBe(71);
   });
 });

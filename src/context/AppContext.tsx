@@ -14,7 +14,7 @@ import * as sound from '../services/sound';
 import { checkTextSafety, autoRewrite } from '../services/safety';
 import { calculateNextScores, determineEnding, INITIAL_MORAL_SCORES } from '../services/moralEngine';
 import type { EndingDetails } from '../services/moralEngine';
-import { isPuzzleAnswerCorrect, resolveCampaignTests } from '../services/simulationRules';
+import { isPuzzleAnswerCorrect, requiresPuzzle, resolveCampaignTests } from '../services/simulationRules';
 
 interface ActiveSimulation {
   campaign: Campaign;
@@ -117,6 +117,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (savedSim) {
       try {
         const parsed = JSON.parse(savedSim);
+        const currentTest = parsed.tests?.[parsed.currentTestIndex];
+        if (currentTest && !parsed.isFinished) {
+          parsed.isPuzzleActive = requiresPuzzle(currentTest) && !parsed.isPuzzleSolved;
+        }
         setActiveSimulation(parsed);
         setCurrentViewState('theatre');
         addLog("SYSTEM: Resumed active simulation: " + parsed.campaign.title);
@@ -214,8 +218,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const updated = campaigns.map((item) => {
       if (item.id === id) {
         const merged = { ...item, ...c, updatedAt: new Date().toISOString() };
-        if (settings.strictSafetyMode) {
-          const safetyCheck = checkTextSafety(merged.title + ' ' + merged.objective + ' ' + merged.fictionalLocation);
+        const changedTextKeys = (['title', 'objective', 'fictionalLocation'] as const)
+          .filter(key => c[key] !== undefined && c[key] !== item[key]);
+        if (settings.strictSafetyMode && changedTextKeys.length) {
+          const safetyCheck = checkTextSafety(changedTextKeys.map(key => merged[key]).join(' '));
           if (!safetyCheck.isSafe) {
             setSafetyTriggered({
               triggered: true,
@@ -223,9 +229,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               suggestion: safetyCheck.suggestedRewrite
             });
             addLog(`SAFETY: Sanitized modifications containing unsafe word [${safetyCheck.blockedTerm}]`);
-            merged.title = autoRewrite(merged.title);
-            merged.objective = autoRewrite(merged.objective);
-            merged.fictionalLocation = autoRewrite(merged.fictionalLocation);
+            changedTextKeys.forEach(key => { merged[key] = autoRewrite(merged[key]); });
           }
         }
         return merged;
@@ -353,8 +357,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const updated = tests.map((item) => {
       if (item.id === id) {
         const merged = { ...item, ...t, updatedAt: new Date().toISOString() };
-        if (settings.strictSafetyMode) {
-          const safetyCheck = checkTextSafety(merged.title + ' ' + merged.openingTape + ' ' + merged.rules);
+        const changedTextKeys = (['title', 'openingTape', 'rules'] as const)
+          .filter(key => t[key] !== undefined && t[key] !== item[key]);
+        if (settings.strictSafetyMode && changedTextKeys.length) {
+          const safetyCheck = checkTextSafety(changedTextKeys.map(key => merged[key]).join(' '));
           if (!safetyCheck.isSafe) {
             setSafetyTriggered({
               triggered: true,
@@ -362,9 +368,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               suggestion: safetyCheck.suggestedRewrite
             });
             addLog(`SAFETY: Sanitized test edits containing unsafe word [${safetyCheck.blockedTerm}]`);
-            merged.title = autoRewrite(merged.title);
-            merged.openingTape = autoRewrite(merged.openingTape);
-            merged.rules = autoRewrite(merged.rules);
+            changedTextKeys.forEach(key => { merged[key] = autoRewrite(merged[key]); });
           }
         }
         return merged;
@@ -476,7 +480,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isPuzzleSolved: false,
       puzzleInput: '',
       puzzleAttempts: 0,
-      isPuzzleActive: firstTest.puzzleType !== 'choice',
+      isPuzzleActive: requiresPuzzle(firstTest),
       revealedCluesIndices: [],
       commentaryLog: [`[SYSTEM INITIALIZATION] Monitoring subject vitals... Calibration matches standard test parameters.`],
       subjectVitals: { heartRate: 75, respiration: 16, adrenaline: 10 }
@@ -578,7 +582,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isPuzzleSolved: false,
         puzzleInput: '',
         puzzleAttempts: 0,
-        isPuzzleActive: nextTest.puzzleType !== 'choice',
+        isPuzzleActive: requiresPuzzle(nextTest),
         revealedCluesIndices: [],
         commentaryLog: [
           ...(activeSimulation.commentaryLog || []),

@@ -3,11 +3,16 @@ extends RefCounted
 ## Coordinates: Y up, floor top at 0, rooms continue along -Z.
 ## Reserved: x in [-1.4, 1.4] at player height, targets at x=+/-2.45
 ## and z=-3.6/-10.5/-19, plus the centre of the final wall.
+## Maintenance branch: x=[4, 8.6], z=[-20.5, -9.3]; two east-wall bays.
+## Its central aisle and the two station footprints are owned by gameplay.
 
 const ROOM_HEIGHT: float = 3.8
 const WALL_THICKNESS: float = 0.2
 const DOOR_WIDTH: float = 2.4
 const DOOR_HEIGHT: float = 2.8
+const WORKSHOP_BAY_WIDTH: float = 2.3
+const WORKSHOP_CENTRE_X: float = 6.3
+const Dressing = preload("res://scripts/station_dressing.gd")
 
 
 static func build(world: Node3D) -> void:
@@ -63,11 +68,13 @@ static func build(world: Node3D) -> void:
 		_shelf(layout, "ArchiveFront_%s" % side, Vector3(side * 3.47, 0, -16.8), metal, neutral_box, amber_box)
 	_shelf(layout, "ArchiveRearLeft", Vector3(-3.47, 0, -21.35), metal, neutral_box, amber_box)
 	_archive_table(layout, Vector3(3.25, 0, -21.35), metal, amber_box)
+	_workshop(layout, dark_metal, pale_metal)
 
 	_label(layout, "SasWallSign", "01  /  SAS D’ACCUEIL", Vector3(-3.87, 2.8, -1.65), Color("d1e4eb"), PI / 2.0, 42, 0.004)
 	_label(layout, "GalleryHeader", "02   GALERIE TECHNIQUE", Vector3(0, 3.23, -6.88), Color("dcebd7"), 0.0, 46, 0.0043)
 	_label(layout, "ArchiveHeader", "03   ARCHIVES", Vector3(0, 3.23, -14.88), Color("f5dfb4"), 0.0, 48, 0.005)
 	_label(layout, "ArchiveEndSign", "STATION DE CONTRÔLE", Vector3(0, 3.18, -22.97), Color("f0dfbf"), 0.0, 44, 0.0045)
+	Dressing.build(layout)
 
 
 static func _room_shell(parent: Node3D, room: Dictionary, trim: StandardMaterial3D) -> void:
@@ -88,18 +95,49 @@ static func _room_shell(parent: Node3D, room: Dictionary, trim: StandardMaterial
 	_box(parent, id + "Ceiling", Vector3(0, ROOM_HEIGHT + 0.1, centre_z), Vector3(8.4, 0.2, length), ceiling)
 	_box(parent, id + "WalkwayPaint", Vector3(0, 0.004, centre_z), Vector3(2.8, 0.008, length), path, false)
 	for side: int in [-1, 1]:
-		_box(parent, id + "Wall_%s" % side, Vector3(side * 4.1, 1.9, centre_z), Vector3(WALL_THICKNESS, ROOM_HEIGHT, length), wall)
-		_box(parent, id + "Skirting_%s" % side, Vector3(side * 3.96, 0.16, centre_z), Vector3(0.08, 0.32, length), trim, false)
-		_box(parent, id + "UpperRail_%s" % side, Vector3(side * 3.95, 2.55, centre_z), Vector3(0.07, 0.055, length), accent, false)
+		var bay_z: float = 0.0
+		if side == 1:
+			if id == "Galerie":
+				bay_z = -11.3
+			elif id == "Archives":
+				bay_z = -18.8
+		_wall_strip(parent, id + "Wall_%s" % side, Vector3(side * 4.1, 1.9, centre_z), Vector3(WALL_THICKNESS, ROOM_HEIGHT, length), wall, bay_z)
+		_wall_strip(parent, id + "Skirting_%s" % side, Vector3(side * 3.96, 0.16, centre_z), Vector3(0.08, 0.32, length), trim, bay_z, false)
+		_wall_strip(parent, id + "UpperRail_%s" % side, Vector3(side * 3.95, 2.55, centre_z), Vector3(0.07, 0.055, length), accent, bay_z, false)
 		_box(parent, id + "GuideLine_%s" % side, Vector3(side * 1.49, 0.009, centre_z), Vector3(0.035, 0.012, length - 0.22), accent, false)
-		_box(parent, id + "Wainscot_%s" % side, Vector3(side * 3.98, 0.67, centre_z), Vector3(0.05, 0.68, length), trim, false)
+		_wall_strip(parent, id + "Wainscot_%s" % side, Vector3(side * 3.98, 0.67, centre_z), Vector3(0.05, 0.68, length), trim, bay_z, false)
 		_box(parent, id + "CeilingTrack_%s" % side, Vector3(side * 2.65, ROOM_HEIGHT - 0.12, centre_z), Vector3(0.18, 0.25, length - 0.24), trim, false)
 		# Small flush wall panels create a rhythm without reducing the aisle.
 		for panel_index: int in range(3):
 			var panel_z: float = far_z + 1.1 + panel_index * (length - 2.2) * 0.5
-			_box(parent, id + "WallInset_%s_%s" % [side, panel_index], Vector3(side * 3.975, 1.68, panel_z), Vector3(0.035, 1.45, 1.3), _material(wall_colour.lightened(0.035), 0.07, 0.88), false)
+			_wall_strip(parent, id + "WallInset_%s_%s" % [side, panel_index], Vector3(side * 3.975, 1.68, panel_z), Vector3(0.035, 1.45, 1.3), _material(wall_colour.lightened(0.035), 0.07, 0.88), bay_z, false)
 	_box(parent, id + "CeilingCrossmemberNear", Vector3(0, ROOM_HEIGHT - 0.18, near_z - 0.65), Vector3(8, 0.36, 0.18), trim, false)
 	_box(parent, id + "CeilingCrossmemberFar", Vector3(0, ROOM_HEIGHT - 0.18, far_z + 0.65), Vector3(8, 0.36, 0.18), trim, false)
+
+
+static func _wall_strip(parent: Node3D, id: String, at: Vector3, size: Vector3, material: StandardMaterial3D, bay_z: float, solid: bool = true) -> void:
+	# Cut both the real wall AND its non-colliding rails/panels. Otherwise a
+	# walkable opening would still appear blocked by a floating strip of trim.
+	var far_z: float = at.z - size.z * 0.5
+	var near_z: float = at.z + size.z * 0.5
+	var bay_far: float = bay_z - WORKSHOP_BAY_WIDTH * 0.5
+	var bay_near: float = bay_z + WORKSHOP_BAY_WIDTH * 0.5
+	var bottom: float = at.y - size.y * 0.5
+	if bay_z == 0.0 or near_z <= bay_far or far_z >= bay_near or bottom >= DOOR_HEIGHT:
+		_box(parent, id, at, size, material, solid)
+		return
+	var near_piece: float = near_z - maxf(far_z, bay_near)
+	if near_piece > 0.001:
+		_box(parent, id + "BayNear", Vector3(at.x, at.y, near_z - near_piece * 0.5), Vector3(size.x, size.y, near_piece), material, solid)
+	var far_piece: float = minf(near_z, bay_far) - far_z
+	if far_piece > 0.001:
+		_box(parent, id + "BayFar", Vector3(at.x, at.y, far_z + far_piece * 0.5), Vector3(size.x, size.y, far_piece), material, solid)
+	var top: float = at.y + size.y * 0.5
+	var above: float = top - DOOR_HEIGHT
+	var opening_near: float = minf(near_z, bay_near)
+	var opening_far: float = maxf(far_z, bay_far)
+	if above > 0.001:
+		_box(parent, id + "BayLintel", Vector3(at.x, DOOR_HEIGHT + above * 0.5, (opening_far + opening_near) * 0.5), Vector3(size.x, above, opening_near - opening_far), material, solid)
 
 
 static func _partition(parent: Node3D, id: String, z: float, wall: StandardMaterial3D, trim: StandardMaterial3D) -> void:
@@ -198,6 +236,96 @@ static func _archive_table(parent: Node3D, at: Vector3, frame: StandardMaterial3
 			_box(parent, "ArchiveTableLeg_%s_%s" % [side_x, side_z], at + Vector3(side_x * 0.43, 0.43, side_z * 0.75), Vector3(0.07, 0.86, 0.07), frame)
 	_box(parent, "ArchiveClosedFolder", at + Vector3(0, 0.993, -0.28), Vector3(0.49, 0.04, 0.35), _material(Color("43535a")), false)
 	_box(parent, "ArchivePaperStack", at + Vector3(0, 1.005, 0.31), Vector3(0.39, 0.07, 0.29), _material(Color("d7d3bd")), false)
+
+
+static func _workshop(parent: Node3D, frame: StandardMaterial3D, pale_metal: StandardMaterial3D) -> void:
+	var annex := Node3D.new()
+	annex.name = "MaintenanceAnnex"
+	parent.add_child(annex)
+	var wall := _concrete(Color("78768b"))
+	var floor_mat := _concrete(Color("4c495b"))
+	var ceiling := _material(Color("494655"), 0.05, 0.93)
+	var accent := _material(Color("c5a4c5"), 0.12, 0.65)
+	var copper := _material(Color("b18e78"), 0.38, 0.7)
+	var ceramic := _material(Color("aeb7bb"), 0.02, 0.88)
+	var muted := _material(Color("646c7b"), 0.16, 0.81)
+	# Floor ends exactly where the main floor ends: x=4, with the same y=0 top.
+	# The main ceilings already extend to x=4.2, so start this ceiling there.
+	_box(annex, "WorkshopFloor", Vector3(6.3, -0.1, -14.9), Vector3(4.6, 0.2, 11.2), floor_mat)
+	_box(annex, "WorkshopCeiling", Vector3(6.5, 3.9, -14.9), Vector3(4.6, 0.2, 11.2), ceiling)
+	_box(annex, "WorkshopEastWall", Vector3(8.7, 1.9, -14.9), Vector3(0.2, 3.8, 11.6), wall)
+	_box(annex, "WorkshopNorthWall", Vector3(6.3, 1.9, -9.2), Vector3(4.6, 3.8, 0.2), wall)
+	_box(annex, "WorkshopSouthWall", Vector3(6.3, 1.9, -20.6), Vector3(4.6, 3.8, 0.2), wall)
+	_box(annex, "WorkshopAislePaint", Vector3(6.3, 0.004, -14.9), Vector3(1.4, 0.008, 10.7), _concrete(Color("666174")), false)
+	_box(annex, "WorkshopEastSkirting", Vector3(8.56, 0.17, -14.9), Vector3(0.08, 0.34, 11.2), frame, false)
+	_box(annex, "WorkshopEastHighRail", Vector3(8.56, 2.6, -14.9), Vector3(0.06, 0.055, 11.2), accent, false)
+	for index: int in range(5):
+		var z: float = -9.6 - index * 2.6
+		_box(annex, "WorkshopWallRib_%s" % index, Vector3(8.54, 1.8, z), Vector3(0.08, 3.55, 0.085), frame, false)
+	# A separate central doorway is left empty for gameplay's optional door.
+	for side: int in [-1, 1]:
+		_box(annex, "WorkshopPartitionSide_%s" % side, Vector3(6.3 + side * 1.75, 1.9, -15), Vector3(1.1, 3.8, 0.18), wall)
+		_box(annex, "WorkshopDoorEdge_%s" % side, Vector3(6.3 + side * 1.25, 1.4, -14.895), Vector3(0.075, 2.8, 0.025), accent, false)
+	_box(annex, "WorkshopPartitionLintel", Vector3(6.3, 3.3, -15), Vector3(2.4, 1.0, 0.18), wall)
+	_label(annex, "WorkshopInnerHeader", "PASSAGE DE SERVICE", Vector3(6.3, 3.22, -14.895), Color("eed9eb"), 0.0, 44, 0.004)
+	_label(annex, "WorkshopRoomSign", "04  /  ATELIER", Vector3(6.3, 3.05, -9.315), Color("ead9ea"), PI, 46, 0.0045)
+	_label(annex, "WorkshopReserveSign", "MODULES DE RÉSERVE", Vector3(6.3, 2.75, -20.485), Color("ead9ea"), 0.0, 40, 0.004)
+
+	for bay_z: float in [-11.3, -18.8]:
+		var tag: String = "Gallery" if bay_z > -15.0 else "Archive"
+		# Vertical marks are outside the full 2.3-wide bay. No threshold body.
+		for side: int in [-1, 1]:
+			_box(parent, "WorkshopBay" + tag + "Mark_%s" % side, Vector3(3.89, 1.4, bay_z + side * 1.205), Vector3(0.035, 2.8, 0.055), accent, false)
+		_box(annex, "WorkshopBay" + tag + "FloorGuide", Vector3(5.15, 0.02, bay_z), Vector3(2.3, 0.008, 0.045), accent, false)
+		_label(parent, "WorkshopBay" + tag + "Header", "ATELIER  /  OPTION", Vector3(3.88, 3.16, bay_z), Color("ead9ea"), -PI / 2.0, 44, 0.0038)
+		_label(annex, "WorkshopBay" + tag + "ReturnSign", "GALERIE" if bay_z > -15.0 else "ARCHIVES", Vector3(4.22, 3.16, bay_z), Color("dcdde9"), PI / 2.0, 40, 0.004)
+
+	# No props in the east station footprints: x=[7.0,8.1], y=[0,2],
+	# z around -10.6 and -13.5. Their approach from x=6.3 is also empty.
+	_workshop_bench(annex, "WorkshopFrontBench", Vector3(4.72, 0, -13.65), frame, copper, ceramic)
+	_workshop_bench(annex, "WorkshopRearBench", Vector3(4.72, 0, -16.25), frame, pale_metal, muted)
+	_box(annex, "WorkshopNorthStore", Vector3(4.62, 0.9, -9.77), Vector3(0.6, 1.8, 0.64), muted)
+	_box(annex, "WorkshopNorthStoreFace", Vector3(4.94, 0.9, -9.77), Vector3(0.035, 1.56, 0.5), pale_metal, false)
+	for index: int in range(3):
+		_box(annex, "WorkshopNorthStoreLine_%s" % index, Vector3(4.965, 0.55 + index * 0.35, -9.77), Vector3(0.015, 0.025, 0.33), frame, false)
+	# A deliberately fictional, sealed display chassis: no moving pieces,
+	# real machine layout, controls, fluid systems, wiring or hazardous parts.
+	_box(annex, "WorkshopInertChassisBase", Vector3(7.94, 0.2, -16.35), Vector3(0.92, 0.4, 1.16), frame)
+	_box(annex, "WorkshopInertChassisCase", Vector3(7.94, 1.03, -16.35), Vector3(0.8, 1.26, 1.0), muted)
+	_box(annex, "WorkshopInertChassisCap", Vector3(7.94, 1.71, -16.35), Vector3(0.87, 0.1, 1.08), pale_metal, false)
+	for index: int in range(5):
+		_box(annex, "WorkshopChassisInertPlate_%s" % index, Vector3(7.505, 0.62 + index * 0.21, -16.35), Vector3(0.045, 0.1, 0.68), copper, false)
+	_box(annex, "WorkshopRearShallowStore", Vector3(6.3, 0.42, -20.3), Vector3(1.8, 0.84, 0.3), muted)
+	for index: int in range(3):
+		_box(annex, "WorkshopRearStorePanel_%s" % index, Vector3(5.7 + index * 0.6, 0.43, -20.135), Vector3(0.51, 0.63, 0.025), ceramic, false)
+	_workshop_light(annex, "WorkshopFront", -12.15, Color("ece3fa"), frame)
+	_workshop_light(annex, "WorkshopRear", -17.75, Color("dce6fa"), frame)
+
+
+static func _workshop_bench(parent: Node3D, id: String, at: Vector3, frame: StandardMaterial3D, top_mat: StandardMaterial3D, ceramic: StandardMaterial3D) -> void:
+	_box(parent, id + "Top", at + Vector3(0, 0.97, 0), Vector3(0.76, 0.12, 1.35), top_mat)
+	for side_x: int in [-1, 1]:
+		for side_z: int in [-1, 1]:
+			_box(parent, id + "Leg_%s_%s" % [side_x, side_z], at + Vector3(side_x * 0.28, 0.455, side_z * 0.54), Vector3(0.07, 0.91, 0.07), frame)
+	_box(parent, id + "LowShelf", at + Vector3(0, 0.25, 0), Vector3(0.66, 0.07, 1.19), frame, false)
+	_box(parent, id + "BackBoard", at + Vector3(-0.35, 1.47, 0), Vector3(0.045, 0.82, 1.35), frame, false)
+	for index: int in range(3):
+		_box(parent, id + "InertBlock_%s" % index, at + Vector3(-0.05, 1.1, -0.37 + index * 0.37), Vector3(0.32, 0.13 + index * 0.035, 0.24), ceramic, false)
+		_box(parent, id + "BackBoardTile_%s" % index, at + Vector3(-0.318, 1.52, -0.38 + index * 0.38), Vector3(0.022, 0.23, 0.28), top_mat, false)
+
+
+static func _workshop_light(parent: Node3D, id: String, z: float, colour: Color, frame: StandardMaterial3D) -> void:
+	_box(parent, id + "Fixture", Vector3(WORKSHOP_CENTRE_X, 3.65, z), Vector3(1.35, 0.14, 0.48), frame, false)
+	_box(parent, id + "Diffuser", Vector3(WORKSHOP_CENTRE_X, 3.565, z), Vector3(1.15, 0.035, 0.3), _glow(colour, 1.0), false)
+	var light := OmniLight3D.new()
+	light.name = id + "Light"
+	light.position = Vector3(WORKSHOP_CENTRE_X, 3.2, z)
+	light.light_color = colour
+	light.light_energy = 2.3
+	light.omni_range = 6.5
+	light.omni_attenuation = 0.85
+	light.shadow_enabled = false
+	parent.add_child(light)
 
 
 static func _material(colour: Color, metallic: float = 0.0, roughness: float = 0.85) -> StandardMaterial3D:
