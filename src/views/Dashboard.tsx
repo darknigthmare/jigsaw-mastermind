@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { CRTPanel } from '../components/common/CRTPanel';
-import { Play, Clipboard, Compass, FolderOpen, Calendar, ArrowUpRight, ScanLine, KeyRound, Cable, Library } from 'lucide-react';
+import { Play, Clipboard, Compass, FolderOpen, Calendar, ArrowUpRight, ScanLine, KeyRound, Cable, Library, DoorOpen } from 'lucide-react';
 import './StationMode.css';
 
 interface DashboardProps {
@@ -34,16 +34,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenStation }) => {
         <div className="station-launch-copy">
           <div className="station-eyebrow"><ScanLine size={15} aria-hidden="true" /> EXPÉRIENCE ORIGINALE · VUE SUBJECTIVE</div>
           <h3 id="station-launch-title">Station de contrôle</h3>
-          <p>Rétablissez la sortie en traversant la station. L’atelier de maintenance offre un passage latéral à débloquer.</p>
-          <div className="station-launch-meta"><span>Exploration & énigmes</span><span>Clavier / souris / tactile</span></div>
+          <p>Rétablissez les accès jusqu’au poste d’évacuation. L’atelier de maintenance offre un passage latéral à débloquer.</p>
+          <div className="station-launch-meta"><span>Visite libre ou défi de 3 min</span><span>Clavier / souris / tactile</span></div>
           <button id="station-launch" className="station-primary-button" onClick={onOpenStation}>
             <Play size={16} fill="currentColor" aria-hidden="true" /> Lancer l’exploration <ArrowUpRight size={17} aria-hidden="true" />
           </button>
         </div>
         <ol className="station-route" aria-label="Parcours principal">
-          <li><span className="station-route-icon"><KeyRound size={21} aria-hidden="true" /></span><div><small>01 / SAS</small><strong>Récupérer le badge</strong></div></li>
-          <li><span className="station-route-icon"><Cable size={21} aria-hidden="true" /></span><div><small>02 / GALERIE TECHNIQUE</small><strong>Rétablir les relais</strong></div></li>
-          <li><span className="station-route-icon"><Library size={21} aria-hidden="true" /></span><div><small>03 / ARCHIVES</small><strong>Consulter l’index · trouver la sortie</strong></div></li>
+          <li><span className="station-route-icon"><KeyRound size={21} aria-hidden="true" /></span><div><small>SAS</small><strong>Récupérer le badge</strong></div></li>
+          <li><span className="station-route-icon"><Cable size={21} aria-hidden="true" /></span><div><small>GALERIE TECHNIQUE</small><strong>Activer un relais</strong></div></li>
+          <li><span className="station-route-icon"><Library size={21} aria-hidden="true" /></span><div><small>ARCHIVES</small><strong>Restaurer l’index</strong></div></li>
+          <li><span className="station-route-icon"><DoorOpen size={21} aria-hidden="true" /></span><div><small>POSTE D’ÉVACUATION</small><strong>Confirmer le protocole et sortir</strong></div></li>
         </ol>
       </section>
 

@@ -5,6 +5,8 @@ extends RefCounted
 ## and z=-3.6/-10.5/-19, plus the centre of the final wall.
 ## Maintenance branch: x=[4, 8.6], z=[-20.5, -9.3]; two east-wall bays.
 ## Its central aisle and the two station footprints are owned by gameplay.
+## Evacuation post: x=[-4,4], z=[-31,-23]. Its door, two station footprints
+## at (+/-2.45,-26.2), and the exit at (0,-30.45) belong to gameplay.
 
 const ROOM_HEIGHT: float = 3.8
 const WALL_THICKNESS: float = 0.2
@@ -13,6 +15,7 @@ const DOOR_HEIGHT: float = 2.8
 const WORKSHOP_BAY_WIDTH: float = 2.3
 const WORKSHOP_CENTRE_X: float = 6.3
 const Dressing = preload("res://scripts/station_dressing.gd")
+const EvacuationDressing = preload("res://scripts/station_evacuation_dressing.gd")
 
 
 static func build(world: Node3D) -> void:
@@ -45,17 +48,23 @@ static func build(world: Node3D) -> void:
 			"wall": Color("796c54"), "floor": Color("504735"),
 			"accent": Color("dfbc78"), "light": Color("fff0cd"),
 		},
+		{
+			"id": "Evacuation", "near_z": -23.0, "far_z": -31.0,
+			"wall": Color("586979"), "floor": Color("344653"),
+			"accent": Color("e0dccb"), "light": Color("e4edf3"),
+		},
 	]
 	for room: Dictionary in rooms:
 		_room_shell(layout, room, dark_metal)
 		_room_light(layout, room, dark_metal)
 
-	# End walls are outside the walkable z interval. The final centre stays bare
-	# for the gameplay controller's access validation at z=-22.45/-22.75.
+	# The former archive end wall becomes a doorway into the evacuation post.
+	# Only gameplay adds its door collider; this layout keeps the aperture empty.
 	_box(layout, "EntryEndWall", Vector3(0, 1.9, 0.1), Vector3(8.4, 3.8, 0.2), _material(Color("596e7b")))
-	_box(layout, "ArchiveEndWall", Vector3(0, 1.9, -23.1), Vector3(8.4, 3.8, 0.2), _material(Color("796c54")))
+	_box(layout, "EvacuationEndWall", Vector3(0, 1.9, -31.1), Vector3(8.4, 3.8, 0.2), _concrete(Color("586979")))
 	_partition(layout, "SasToGallery", -7.0, _material(Color("4c6066")), dark_metal)
 	_partition(layout, "GalleryToArchives", -15.0, _material(Color("657060")), dark_metal)
+	_partition(layout, "ArchivesToEvacuation", -23.0, _material(Color("586979")), dark_metal)
 
 	# Furniture stops well before the six reserved target positions. These props
 	# are visual dressing: no interaction group, prompt, animation or game logic.
@@ -73,8 +82,9 @@ static func build(world: Node3D) -> void:
 	_label(layout, "SasWallSign", "01  /  SAS D’ACCUEIL", Vector3(-3.87, 2.8, -1.65), Color("d1e4eb"), PI / 2.0, 42, 0.004)
 	_label(layout, "GalleryHeader", "02   GALERIE TECHNIQUE", Vector3(0, 3.23, -6.88), Color("dcebd7"), 0.0, 46, 0.0043)
 	_label(layout, "ArchiveHeader", "03   ARCHIVES", Vector3(0, 3.23, -14.88), Color("f5dfb4"), 0.0, 48, 0.005)
-	_label(layout, "ArchiveEndSign", "STATION DE CONTRÔLE", Vector3(0, 3.18, -22.97), Color("f0dfbf"), 0.0, 44, 0.0045)
+	_evacuation_wayfinding(layout)
 	Dressing.build(layout)
+	EvacuationDressing.build(layout)
 
 
 static func _room_shell(parent: Node3D, room: Dictionary, trim: StandardMaterial3D) -> void:
@@ -168,9 +178,29 @@ static func _room_light(parent: Node3D, room: Dictionary, casing: StandardMateri
 	light.light_energy = 2.8
 	light.omni_range = 8.5
 	light.omni_attenuation = 0.8
-	# Three unshadowed local lights stay inexpensive in Compatibility/WebGL.
+	# Unshadowed local lights stay inexpensive in Compatibility/WebGL.
 	light.shadow_enabled = false
 	parent.add_child(light)
+
+
+static func _evacuation_wayfinding(parent: Node3D) -> void:
+	var ivory := _material(Color("e0dccb"), 0.04, 0.72)
+	var text_colour := Color("edece1")
+	# Flat paint remains non-colliding. It sits above the walkway's 0.008 top
+	# instead of sharing a coplanar surface with the existing floor overlays.
+	for index: int in range(3):
+		var z: float = -24.65 - index * 2.05
+		for side: int in [-1, 1]:
+			var stroke := _box(parent, "EvacuationChevron_%s_%s" % [index, side], Vector3(side * 0.14, 0.021, z), Vector3(0.035, 0.008, 0.4), ivory, false)
+			stroke.rotation.y = side * PI / 4.0
+	for side: int in [-1, 1]:
+		# High ivory bands distinguish this room without adding player obstacles.
+		_box(parent, "EvacuationIvoryBand_%s" % side, Vector3(side * 3.94, 3.08, -27), Vector3(0.025, 0.26, 6.5), ivory, false)
+	# Incoming sign faces +Z toward readers in the archive; the return sign
+	# faces -Z toward readers inside the evacuation room. No billboard flipping.
+	_label(parent, "EvacuationEntrySign", "05  /  POSTE D’ÉVACUATION", Vector3(0, 3.22, -22.88), text_colour, 0.0, 44, 0.0043)
+	_label(parent, "EvacuationReturnSign", "RETOUR  /  ARCHIVES", Vector3(0, 3.22, -23.12), text_colour, PI, 44, 0.0043)
+	_label(parent, "EvacuationExitSign", "SORTIE", Vector3(0, 3.1, -30.97), text_colour, 0.0, 52, 0.0055)
 
 
 static func _bench(parent: Node3D, id: String, at: Vector3, frame: StandardMaterial3D, upholstery: StandardMaterial3D) -> void:

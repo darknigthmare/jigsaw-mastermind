@@ -29,7 +29,7 @@ export function StationMode({ onExit }: StationModeProps) {
   useEffect(() => {
     let ready = false;
     const frame = iframeRef.current;
-    const frameFailed = () => setStatus('error');
+    const frameFailed = () => { ready = false; setStatus('error'); };
     const timer = window.setTimeout(() => {
       if (!ready) setStatus(current => current === 'loading' ? 'delayed' : current);
     }, 45000);
@@ -108,6 +108,11 @@ export function StationMode({ onExit }: StationModeProps) {
         <a className="station-plan-link" href="#station-plan">Plan de la station</a>
       </div>
 
+      <div className="station-run-mode" aria-live="polite">
+        <span className="station-mode-badge">{progress.mode === 'defi' ? 'Défi · 3 min' : progress.mode === 'visite' ? 'Visite · sans limite de temps' : 'Visite ou défi · choisissez dans la station'}</span>
+        <span>{progress.mode === 'defi' ? 'Validez les cinq objectifs avant la fin du temps imparti.' : 'Explorez quatre espaces, avec un détour facultatif par l’atelier.'}</span>
+      </div>
+
       <div className="station-stage" aria-busy={status === 'loading' || status === 'delayed'}>
         <iframe
           key={attempt}
@@ -121,6 +126,16 @@ export function StationMode({ onExit }: StationModeProps) {
           onLoad={() => setDocumentLoaded(true)}
         />
       </div>
+
+      {progress.outcome && <section className={`station-run-outcome station-run-outcome--${progress.outcome}`} role={progress.outcome === 'delai-expire' ? 'alert' : 'status'}>
+        <div>
+          <h2>{progress.outcome === 'delai-expire' ? 'Délai écoulé' : 'Sortie validée'}</h2>
+          <p>{progress.outcome === 'delai-expire'
+            ? `Le défi est terminé. ${progress.completed} / 5 objectifs atteints. Rejouez dans la station pour conserver ce mode, ou choisissez une nouvelle traversée.`
+            : 'Les cinq objectifs sont validés. Vous pouvez rejouer dans ce mode ou choisir une nouvelle traversée.'}</p>
+        </div>
+        <button className="station-secondary-button" onClick={restart}>Choisir une nouvelle traversée</button>
+      </section>}
 
       {fullscreenNotice && <p className="station-fullscreen-notice" role="status">{fullscreenNotice}</p>}
 

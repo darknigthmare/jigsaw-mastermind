@@ -62,30 +62,40 @@
 .station-plan-link { display: inline-flex; align-items: center; min-height: 44px; margin-inline-start: auto; padding-inline: .65rem; color: #d7e6dd; text-decoration: underline; text-underline-offset: .2em; }
 .station-stage { position: relative; width: 100%; height: clamp(360px, 66svh, 760px); min-width: 0; overflow: hidden; border: 1px solid #496458; border-radius: 5px; background: #080e0d; }
 .station-game-frame { display: block; border: 0; width: 100%; height: 100%; background: #080e0d; }
+.station-run-mode { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .85rem; margin: 0 0 .8rem; font-size: .65rem; line-height: 1.6; color: #b7c8bc; }
+.station-mode-badge { display: inline-block; padding: .3rem .6rem; border: 1px solid #527567; border-radius: 3px; color: #d8f0dc; background: #192e25; }
+.station-run-outcome { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem 1.2rem; margin-top: .9rem; padding: .9rem 1rem; border: 1px solid #6e9c7c; border-radius: 4px; background: #1b3025; }
+.station-run-outcome > div { flex: 1 1 250px; min-width: 0; }
+.station-run-outcome h2 { margin: 0 0 .3rem; font-size: .9rem; color: #e9f4e5; }
+.station-run-outcome p { margin: 0; max-width: 78ch; font-size: .7rem; line-height: 1.7; overflow-wrap: anywhere; }
+.station-run-outcome--delai-expire { border-color: #aa885a; background: #30281c; color: #eadbc2; }
 .station-fullscreen-notice { font-size: .7rem; color: #e5ce9f; line-height: 1.6; }
 .station-field-guide { display: grid; grid-template-columns: minmax(260px, 1.05fr) minmax(0, 1.3fr); gap: 1.2rem; margin-top: 1.2rem; align-items: start; }
 .station-plan { min-width: 0; padding: .8rem; border: 1px solid #344e43; border-radius: 4px; background: #101c1a; scroll-margin-block-start: 150px; }
 .station-plan-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: .5rem; margin-bottom: .8rem; }
 .station-plan-header h2 { margin: 0; font-size: .85rem; color: #edf5ed; }
 .station-plan-header > span { color: #b6e9ba; font-size: .65rem; }
-.station-plan-layout { display: grid; gap: .45rem .7rem; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-rows: repeat(3, minmax(44px, auto)); }
+.station-plan-layout { display: grid; gap: .45rem .7rem; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-rows: repeat(4, minmax(44px, auto)); }
 .station-plan-main { display: contents; padding: 0; margin: 0; list-style: none; }
 .station-plan-main li { position: relative; display: flex; align-items: center; grid-column: 1; gap: .45rem; min-width: 0; border: 1px solid #496458; padding: .42rem .55rem; background: #172421; border-radius: 3px; }
-.station-plan-main li[data-room="entry"] { grid-row: 3; }
-.station-plan-main li[data-room="gallery"] { grid-row: 2; }
-.station-plan-main li[data-room="archive"] { grid-row: 1; }
+.station-plan-main li[data-room="entry"] { grid-row: 4; }
+.station-plan-main li[data-room="gallery"] { grid-row: 3; }
+.station-plan-main li[data-room="archive"] { grid-row: 2; }
+.station-plan-main li[data-room="evacuation"] { grid-row: 1; }
 .station-plan-main li[data-room="entry"]::before,
-.station-plan-main li[data-room="gallery"]::before { content: ''; position: absolute; bottom: 100%; height: calc(.45rem + 1px); left: 50%; border-left: 2px solid #789385; }
+.station-plan-main li[data-room="gallery"]::before,
+.station-plan-main li[data-room="archive"]::before { content: ''; position: absolute; bottom: 100%; height: calc(.45rem + 1px); left: 50%; border-left: 2px solid #789385; }
 .station-plan-main li[data-room="gallery"]::after,
 .station-plan-main li[data-room="archive"]::after { content: ''; position: absolute; left: 100%; width: calc(.7rem + 1px); top: 50%; border-top: 1px dashed #afab83; }
 .station-plan-main li[data-state="active"] { border-color: #c8e3ac; background: #283826; }
 .station-plan-main li[data-state="done"] { border-color: #60947c; background: #1d3229; }
+.station-plan-main li[data-state="stopped"] { border-color: #aa885a; background: #30281c; }
 .station-plan-main li > svg { flex-shrink: 0; color: #9fc5b1; }
 .station-plan-layout strong,
 .station-plan-layout span { display: block; overflow-wrap: anywhere; }
 .station-plan-layout strong { color: #e2eee7; font-size: .73rem; line-height: 1.35; }
 .station-plan-layout span { color: #b3c5b9; font-size: .62rem; line-height: 1.45; }
-.station-plan-workshop { grid-column: 2; grid-row: 1 / span 2; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: .2rem; border: 1px dashed #92896a; padding: .5rem .6rem; color: #e2cca5; background: #24231b; border-radius: 3px; }
+.station-plan-workshop { grid-column: 2; grid-row: 2 / span 2; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: .2rem; border: 1px dashed #92896a; padding: .5rem .6rem; color: #e2cca5; background: #24231b; border-radius: 3px; }
 .station-plan-workshop[data-open="true"] { border-style: solid; border-color: #b7d899; background: #273727; }
 .station-plan-objective { margin: .65rem 0 0; color: #c4d5c8; font-size: .7rem; line-height: 1.5; }
 .station-controls { border: 1px solid #344e43; border-radius: 4px; padding: .8rem 1rem; }
@@ -126,10 +136,6 @@
   .station-secondary-button { font-size: .65rem; padding: .6rem .7rem; gap: .4rem; }
   .station-controls-grid { grid-template-columns: 1fr; }
   .station-stage { height: 62svh; min-height: 360px; }
-}
-@media (max-width: 360px) {
-  /* Keep the full in-game menu and its start button inside the canvas. */
-  .station-stage { min-height: 40rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .station-spinner { animation: none; }
