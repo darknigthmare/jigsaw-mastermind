@@ -24,6 +24,7 @@ var _paused: bool = false
 var _finished: bool = false
 var _timed: bool = false
 var _elapsed: float = 0.0
+var _last_clock_tick_ms: int = 0
 var _toast_left: float = 0.0
 var _compact_feedback: String = ""
 var _focus_id: String = ""
@@ -84,7 +85,10 @@ func _spawn_player() -> void:
 func _process(delta: float) -> void:
 	if not _started or _paused or _finished:
 		return
-	_elapsed += delta
+	# Rendering can run slower than real time on a throttled web export.
+	var tick_ms := Time.get_ticks_msec()
+	_elapsed += (tick_ms - _last_clock_tick_ms) * 0.001
+	_last_clock_tick_ms = tick_ms
 	if _timed and _elapsed >= CHALLENGE_DURATION:
 		_elapsed = CHALLENGE_DURATION
 		_refresh_clock()
@@ -726,6 +730,7 @@ func _set_modal(visible: bool) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		_primary.grab_focus()
 	else:
+		_last_clock_tick_ms = Time.get_ticks_msec()
 		_primary.release_focus()
 		_secondary.release_focus()
 		_interact_button.release_focus()

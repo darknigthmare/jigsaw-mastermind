@@ -142,7 +142,8 @@ func _run() -> void:
 	station._process(2.0)
 	_check(station._paused and station._elapsed == paused_at, "pausing freezes the countdown")
 	station._primary_action()
-	station._process(0.15)
+	station._last_clock_tick_ms -= 150
+	station._process(0.0)
 	_check(station._finished and station._stage == 1 and station._clock.text == "00:00", "timeout retains achieved objectives and ends the challenge")
 	_check(station._modal_title.text == "Délai expiré" and station._modal_body.text.contains("1/5"), "timeout is shown instead of an escape success")
 	for frame in range(8):
@@ -151,7 +152,8 @@ func _run() -> void:
 	_check(Rect2(Vector2.ZERO, Vector2(root.size)).encloses(menu_bounds), "retry and mode change fit the portrait failure modal", {"bounds": str(menu_bounds)})
 	station._secondary_action()
 	station._primary_action()
-	station._process(station.CHALLENGE_DURATION + 1.0)
+	station._last_clock_tick_ms -= 181000
+	station._process(0.0)
 	_check(not station._finished and not station._timed, "new visit still runs past the challenge limit")
 	print("STATION_ROUTE_RESULT " + JSON.stringify({"passed": true, "scope": "headless fixture interactions and actual capsule collision sweeps; no browser playthrough claimed", "checks": checks}))
 	quit(0)
