@@ -16,6 +16,8 @@ import { calculateNextScores, determineEnding, INITIAL_MORAL_SCORES } from '../s
 import type { EndingDetails } from '../services/moralEngine';
 import { isPuzzleAnswerCorrect, requiresPuzzle, resolveCampaignTests } from '../services/simulationRules';
 import { getDernierRelaisEnding } from '../services/dernierRelaisData';
+import { getUneDeMinuitEnding } from '../services/laUneDeMinuitData';
+import { getRosterEnding } from '../services/rosterData';
 
 interface ActiveSimulation {
   campaign: Campaign;
@@ -520,7 +522,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (isEndingTriggered) {
       // End simulation
-      const endingDetails = (!choice.endingType && getDernierRelaisEnding(campaign.id, nextDecisions)) || determineEnding(nextScores);
+      const authoredEnding = choice.endingType ? undefined
+        : getDernierRelaisEnding(campaign.id, nextDecisions)
+          ?? getUneDeMinuitEnding(campaign.id, nextDecisions)
+          ?? getRosterEnding(campaign.id, nextDecisions);
+      const endingDetails = authoredEnding || determineEnding(nextScores);
       const finalEndingType = choice.endingType || endingDetails.type;
       
       const finishedSim: ActiveSimulation = {

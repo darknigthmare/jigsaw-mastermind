@@ -63,6 +63,10 @@ func _run() -> void:
 	_check(station._secondary.visible and station._secondary.text.contains("Défi"), "timed challenge offered in the menu")
 	station._primary_action()
 	_check(not station._timed, "visit starts without a deadline")
+	root.size = Vector2i(1024, 700)
+	for frame in range(8):
+		await process_frame
+	_check(station._compact_hud, "1024x700 embed uses the compact HUD below 720 px height")
 	root.size = Vector2i(960, 480)
 	for frame in range(8):
 		await process_frame
@@ -71,6 +75,11 @@ func _run() -> void:
 	await _aim_and_interact("workshop_register", Vector3(6.3, 0.04, -10.6))
 	_check(station._workshop_stage == 0, "register rejected before relay")
 	await _aim_and_interact("badge", Vector3(0, 0.04, -3.6))
+	station._process(0.0)
+	_check(station._focus_id == "badge" and station._hud.modulate.a > 0.9, "HUD stays readable while the badge toast is shown")
+	station._toast_left = 0.0
+	station._process(0.0)
+	_check(station._hud.modulate.a < 0.5, "HUD fades again once the toast has expired")
 	await _aim_and_interact("relay_stable", Vector3(0, 0.04, -10.5))
 	_check(station._stage == 2 and station._workshop_stage == 0, "relay unlocks optional branch without completing it")
 	_motion_clear(Vector3(0, 0.04, -11.3), Vector3(6.3, 0.04, -11.3), "gallery bay is capsule-passable")

@@ -7,9 +7,10 @@ import { MoralScoreBars } from '../components/common/MoralScoreBars';
 import { TheatreScene } from '../components/common/TheatreScene';
 import type { CharacterProfile } from '../types';
 import { findGearPositions, getPuzzleControl } from '../services/simulationRules';
-import { DERNIER_RELAIS_CAMPAIGN } from '../services/dernierRelaisData';
+import { DERNIER_RELAIS_CAMPAIGN, getOrionDossierPiece } from '../services/dernierRelaisData';
+import { isOrionConfirmed } from '../services/orionMarker';
 import * as sound from '../services/sound';
-import { Radio, AlertTriangle, FileText, ChevronRight, X, ArrowLeft } from 'lucide-react';
+import { Radio, AlertTriangle, FileText, ChevronRight, X, ArrowLeft, ScanLine } from 'lucide-react';
 
 export const TheatreMode: React.FC = () => {
   const {
@@ -24,6 +25,8 @@ export const TheatreMode: React.FC = () => {
   } = useApp();
   
   const [showClues, setShowClues] = useState(false);
+  // Read once per entry: the Station detour is written before the enquiry opens.
+  const [orionConfirmed] = useState(isOrionConfirmed);
   const clueDialogRef = useRef<HTMLDivElement>(null);
   const theatreRef = useRef<HTMLDivElement>(null);
 
@@ -63,7 +66,8 @@ export const TheatreMode: React.FC = () => {
     };
   }, [showClues]);
 
-  // The original handover story uses its own quiet audio introduction.
+  // The handover story keeps its quiet introduction; the test at the press opens
+  // on the franchise's laughter cue like the other authored campaigns.
   useEffect(() => {
     if (activeSimulation?.campaign.id !== DERNIER_RELAIS_CAMPAIGN.id) sound.playBillyLaughter();
   }, [activeSimulation?.campaign.id]);
@@ -150,6 +154,8 @@ export const TheatreMode: React.FC = () => {
 
   const currentTest = tests[currentTestIndex];
   const isDernierRelais = campaign.id === DERNIER_RELAIS_CAMPAIGN.id;
+  const orionPiece = isDernierRelais ? getOrionDossierPiece(orionConfirmed) : null;
+  const orionClue = orionPiece?.clue && orionPiece.clue.testId === currentTest?.id ? orionPiece.clue.text : null;
   const puzzleControl = getPuzzleControl(currentTest);
 
   // Helper to trigger download of case report
@@ -225,7 +231,7 @@ export const TheatreMode: React.FC = () => {
                     {matchingCharacterName(characters, currentTest?.characterId || '')}
                   </span>
                 </div>
-                <TimerDisplay seconds={timerLeft} />
+                <TimerDisplay seconds={timerLeft} isFinished={isFinished} />
               </div>
 
               <TapePlayer
@@ -234,6 +240,18 @@ export const TheatreMode: React.FC = () => {
                 onTogglePlay={toggleTapePlayback}
               />
             </CRTPanel>
+
+            {/* Station dossier piece: the optional ORION detour follows the player here */}
+            {orionPiece && (
+              <CRTPanel className="p-4 flex flex-col gap-2">
+                <span className="text-[9px] font-bold text-terminal-green border-b border-terminal-green/20 pb-1.5 uppercase select-none flex items-center gap-1.5">
+                  <ScanLine size={12} aria-hidden="true" />
+                  PIÈCE DU DOSSIER · REPÈRE ORION
+                </span>
+                <strong className="text-xs font-bold text-white">{orionPiece.title}</strong>
+                <p className="text-[10.5px] leading-relaxed text-c4cdc4/80 select-text">{orionPiece.body}</p>
+              </CRTPanel>
+            )}
 
             {/* Subject Vitals Telemetry */}
             {activeSimulation.subjectVitals && (
@@ -312,7 +330,7 @@ export const TheatreMode: React.FC = () => {
                 className="w-full bg-terminal-metal hover:bg-terminal-green/5 border border-terminal-metal-light hover:border-terminal-green p-3 rounded font-bold text-xs text-c4cdc4 hover:text-terminal-green cursor-pointer transition-all flex items-center justify-center gap-2 select-none"
               >
                 <FileText size={14} />
-                ACCESS DECRYPTION MEMORIES ({currentTest.clues.length} AVAILABLE)
+                ACCESS DECRYPTION MEMORIES ({currentTest.clues.length + (orionClue ? 1 : 0)} AVAILABLE)
               </button>
             )}
           </div>
@@ -686,7 +704,7 @@ export const TheatreMode: React.FC = () => {
 
                       {puzzleControl.kind === 'coordinates' && (
                         <div className="flex flex-col gap-3">
-                          <span className="text-[8.5px] text-c4cdc4/50 font-bold uppercase select-none">{isDernierRelais ? 'INVENTAIRE DES CASIERS DE L’ATELIER :' : 'BATHROOM FLOOR COORDINATE SCANNER:'}</span>
+                          <span className="text-[8.5px] text-c4cdc4/50 font-bold uppercase select-none">{currentTest.puzzleData.gridLabel ?? (isDernierRelais ? 'INVENTAIRE DES CASIERS DE L’ATELIER :' : 'BATHROOM FLOOR COORDINATE SCANNER:')}</span>
                           
                           <div className="grid grid-cols-3 gap-3 my-2 select-none">
                             {['A-1', 'A-2', 'A-3', 'B-1', 'B-2', 'B-3', 'C-1', 'C-2', 'C-3'].map((tile) => {
@@ -831,6 +849,15 @@ export const TheatreMode: React.FC = () => {
                     </div>
                   );
                 })}
+                {orionClue && (
+                  <div className="bg-terminal-green/5 border border-terminal-green/40 p-3 rounded text-[11px] leading-relaxed font-mono">
+                    <div className="flex justify-between items-baseline mb-1 select-none">
+                      <span className="text-terminal-green font-bold uppercase">Dossier entry — station ORION</span>
+                      <span className="text-[8px] text-terminal-green-dim uppercase font-bold">[VERSÉ]</span>
+                    </div>
+                    <p className="text-c4cdc4/90 mt-1 select-text">{orionClue}</p>
+                  </div>
+                )}
               </div>
 
               <button

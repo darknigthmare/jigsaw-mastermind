@@ -1,4 +1,5 @@
 import { Cable, DoorOpen, KeyRound, Library, Wrench } from 'lucide-react';
+import { isOrionConfirmed } from '../services/orionMarker';
 import type { StationProgress } from '../services/stationProgress';
 
 const objectives = [
@@ -18,8 +19,11 @@ const rooms = [
 ] as const;
 
 export function StationPlan({ progress }: { progress: StationProgress }) {
-  const workshopState = progress.workshop === 'open' ? 'Passage ouvert'
-    : progress.workshop === 'registered' ? 'Registre relevé'
+  // The detour outlives the iframe: after a reload the in-memory progress is
+  // gone, so the plan reads the confirmed flag as the Relais dossier does.
+  const confirmed = progress.workshop === 'open' || isOrionConfirmed();
+  const workshopState = confirmed ? 'Passage ouvert · pièce versée au dossier du Relais'
+    : progress.workshop === 'registered' ? 'Registre relevé · témoin à comparer'
       : progress.outcome ? 'Détour non effectué'
       : progress.completed >= 2 ? 'Diagnostic disponible' : 'Après le relais';
 
@@ -43,7 +47,7 @@ export function StationPlan({ progress }: { progress: StationProgress }) {
             );
           })}
         </ol>
-        <div className="station-plan-workshop" data-open={progress.workshop === 'open'}>
+        <div className="station-plan-workshop" data-open={confirmed}>
           <Wrench size={16} aria-hidden="true" />
           <strong>Atelier</strong>
           <span>Galerie → Archives</span>

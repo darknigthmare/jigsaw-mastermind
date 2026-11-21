@@ -6,8 +6,110 @@ import {
   PRELOADED_LORE_EVENTS
 } from './preloadedData';
 import { DERNIER_RELAIS_CAMPAIGN, DERNIER_RELAIS_CHARACTERS, DERNIER_RELAIS_CONTENT_ID, DERNIER_RELAIS_TESTS } from './dernierRelaisData';
+import { UNE_DE_MINUIT_CAMPAIGN, UNE_DE_MINUIT_CHARACTERS, UNE_DE_MINUIT_CONTENT_ID, UNE_DE_MINUIT_TESTS } from './laUneDeMinuitData';
+import { ROSTER_CAMPAIGN, ROSTER_CHARACTERS, ROSTER_CONTENT_ID, ROSTER_TESTS } from './rosterData';
+import { SAW_ONE_TWO_TESTS } from './sawOneTwoData';
+import { SAW_THREE_FOUR_TESTS } from './sawThreeFourData';
+import { SAW_FIVE_SEVEN_TESTS } from './sawFiveSevenData';
+import { SAW_LEGACY_TESTS } from './sawLegacyData';
 
 export const CONTENT_INSTALLATIONS_KEY = 'jigsaw_content_installed';
+export const CONTENT_UPGRADES_KEY = 'jigsaw_content_upgraded';
+
+/** One-time rewrites of shipped content. A record is only replaced while it
+ * still carries its original title, so a player's edit is never overwritten. */
+interface ContentUpgrade {
+  id: string;
+  legacyTitles: Record<string, string>;
+  replacements: SymbolicTest[];
+}
+
+const CONTENT_UPGRADES: ContentUpgrade[] = [
+  { id: 'saw-one-two-rewrite-v1', replacements: SAW_ONE_TWO_TESTS, legacyTitles: {
+  'test-s1-bathroom': 'Bathroom Padlock Key',
+  'test-s1-bear-trap': 'The Reverse Bear Lockway',
+  'test-s1-razor-wire': 'Razor Wire Exit Lock',
+  'test-s1-flammable-jelly': 'Flammable Jelly Code',
+  'test-s1-drill-chair': 'Drill Chair Latch',
+  'test-s1-shotgun-hallway': 'Shotgun Hallway Breaker',
+  'test-s1-zep-hostage': 'Zep\'s Hostage Poison',
+  'test-s2-death-mask': 'The Death Mask Scale',
+  'test-s2-needle-pit': 'The Needle Pit Confession',
+  'test-s2-razor-box': 'The Razor Hand Box',
+  'test-s2-furnace': 'Furnace Regulator Lock',
+  'test-s2-shotgun-peephole': 'Shotgun Peephole Bypass',
+  'test-s2-gas-house': 'Nerve Gas House Vent',
+  } },
+  { id: 'saw-three-four-rewrite-v1', replacements: SAW_THREE_FOUR_TESTS, legacyTitles: {
+    'test-s3-freezer': 'Freezer Water Valve Lock',
+    'test-s3-angel': 'The Angel Lockway Gears',
+    'test-s3-rack': 'The Rack Torque Mesh',
+    'test-s3-classroom': 'Classroom Trap Chains',
+    'test-s3-pig-vat': 'Pig Vat Acid Latch',
+    'test-s3-shotgun-collar': 'Lynn\'s Shotgun Collar',
+    'test-s4-mausoleum': 'Mausoleum Key Coordinates',
+    'test-s4-knife-chair': 'The Knife Chair Scale',
+    'test-s4-hair': 'The Hair Scalp Lock',
+    'test-s4-spikes': 'Rex & Morgan Spikes',
+    'test-s4-bedroom': 'Ivan\'s Bedroom Harness',
+    'test-s4-ice-blocks': 'Eric Matthews Ice Blocks',
+  } },
+  { id: 'saw-five-seven-rewrite-v1', replacements: SAW_FIVE_SEVEN_TESTS, legacyTitles: {
+    'test-s5-pendulum': 'The Pendulum Bypass',
+    'test-s5-blood-saws': 'The 10 Pints of Blood',
+    'test-s5-collar-keys': 'Collar Key coordinates',
+    'test-s5-water-cube': 'Peter Strahm Water Cube',
+    'test-s5-ceiling-jars': 'The Ceiling Jars Grid',
+    'test-s5-electric-bathtub': 'The Electric Bathtub',
+    'test-s5-glass-coffin': 'The Glass Coffin',
+    'test-s6-oxygen': 'The Oxygen Crusher',
+    'test-s6-gallows': 'The Gallows Selection',
+    'test-s6-carousel': 'The Shotgun Carousel',
+    'test-s6-steam-maze': "Debbie's Steam Maze",
+    'test-s6-acid-latch': "Brent's Acid Injection",
+    'test-s6-pound-flesh': 'The Pound of Flesh',
+    'test-s6-bear-trap-2': 'Reverse Bear Trap 2.0',
+    'test-s7-horsepower': 'Horsepower Chain Release',
+    'test-s7-silence': 'The Silence Latch Lock',
+    'test-s7-lawnmower': 'The Lawnmower Latch',
+    'test-s7-spike-cage': "Bobby's Spike Cage",
+    'test-s7-public-exec': 'Public Circular Saws',
+    'test-s7-brazen-bull': 'The Brazen Bull harness',
+    'test-s7-impalement-wheel': 'The Impalement Wheel',
+    'test-s7-wisdom-teeth': 'Wisdom Teeth Combination',
+  } },
+  { id: 'saw-legacy-rewrite-v1', replacements: SAW_LEGACY_TESTS, legacyTitles: {
+    'test-jg-bucket-heads': 'The Bucket Head Scanner',
+    'test-jg-chain-hangers': 'The Chain Hangers',
+    'test-jg-poison-syringes': "Carly's Poison Syringe",
+    'test-jg-leg-wire': "Ryan's Leg Wire Cut",
+    'test-jg-silo': 'The Grain Silo Dials',
+    'test-jg-cycle': "Mitch's Cycle Trap",
+    'test-jg-shotgun-keys': 'Shotgun Keys Latch',
+    'test-jg-laser-collars': 'Laser Collar Frequency',
+    'test-sp-tongue': 'The Tongue Subway Release',
+    'test-sp-finger': 'The Finger Latch Override',
+    'test-sp-skinning': 'The Skinning Latch',
+    'test-sp-wax': 'Kara Wax Face override',
+    'test-sp-shredder': 'Glass Shredder coordinates',
+    'test-sp-puppet-strings': 'Marcus Banks Chains',
+    'test-sx-vacuum': 'Eyeball Vacuum scale',
+    'test-sx-gigli': 'Gigli Saw Voltage',
+    'test-sx-pipebomb': 'Pipe Bomb Safe Override',
+    'test-sx-radiation': 'Radiation Mask Key',
+    'test-sx-bone-crusher': "Gabriela's Radiation Gasket",
+    'test-sx-blood-pit': 'Blood Pit Coordinates',
+    'test-sx-gas-room': 'Poison Gas Room',
+  } },
+];
+
+/** Public packs delivered additively. Each pack is installed once by ID, so an
+ * existing library receives it without losing edits or deliberate deletions. */
+const CONTENT_PACKS = [
+  { id: DERNIER_RELAIS_CONTENT_ID, campaigns: [DERNIER_RELAIS_CAMPAIGN], characters: DERNIER_RELAIS_CHARACTERS, tests: DERNIER_RELAIS_TESTS },
+  { id: UNE_DE_MINUIT_CONTENT_ID, campaigns: [UNE_DE_MINUIT_CAMPAIGN], characters: UNE_DE_MINUIT_CHARACTERS, tests: UNE_DE_MINUIT_TESTS },
+  { id: ROSTER_CONTENT_ID, campaigns: [ROSTER_CAMPAIGN], characters: ROSTER_CHARACTERS, tests: ROSTER_TESTS },
+];
 
 function contentInstallations(): string[] {
   try {
@@ -16,6 +118,36 @@ function contentInstallations(): string[] {
   } catch {
     return [];
   }
+}
+
+function contentUpgrades(): string[] {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(CONTENT_UPGRADES_KEY) || '[]');
+    return Array.isArray(value) && value.every(item => typeof item === 'string') ? value : [];
+  } catch {
+    return [];
+  }
+}
+
+function applyContentUpgrades(): void {
+  const applied = contentUpgrades();
+  const stored = storedCollection<SymbolicTest>(KEYS.TESTS);
+  let upgraded = stored;
+  let changed = false;
+  for (const upgrade of CONTENT_UPGRADES) {
+    if (!upgraded || applied.includes(upgrade.id)) continue;
+    const replacements = new Map(upgrade.replacements.map(test => [test.id, test]));
+    upgraded = upgraded.map(test => {
+      if (test.title !== upgrade.legacyTitles[test.id]) return test;
+      const replacement = replacements.get(test.id);
+      if (!replacement) return test;
+      changed = true;
+      return replacement;
+    });
+    applied.push(upgrade.id);
+  }
+  if (changed && upgraded) localStorage.setItem(KEYS.TESTS, JSON.stringify(upgraded));
+  if (applied.length) localStorage.setItem(CONTENT_UPGRADES_KEY, JSON.stringify(applied));
 }
 
 function storedCollection<T>(key: string): T[] | undefined {
@@ -52,7 +184,6 @@ export function initializeDB(): void {
   // content until the existing decrypt/import flow has restored the lists.
   if (isVaultEncrypted()) return;
   const installed = contentInstallations();
-  const needsRelay = !installed.includes(DERNIER_RELAIS_CONTENT_ID);
   if (!localStorage.getItem(KEYS.SETTINGS)) {
     localStorage.setItem(KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
   }
@@ -71,11 +202,12 @@ export function initializeDB(): void {
   if (!localStorage.getItem(KEYS.RUNS)) {
     localStorage.setItem(KEYS.RUNS, JSON.stringify([]));
   }
-  if (needsRelay) {
+  for (const pack of CONTENT_PACKS) {
+    if (installed.includes(pack.id)) continue;
     const additions: [string, { id: string }[]][] = [
-      [KEYS.CAMPAIGNS, [DERNIER_RELAIS_CAMPAIGN]],
-      [KEYS.CHARACTERS, DERNIER_RELAIS_CHARACTERS],
-      [KEYS.TESTS, DERNIER_RELAIS_TESTS],
+      [KEYS.CAMPAIGNS, pack.campaigns],
+      [KEYS.CHARACTERS, pack.characters],
+      [KEYS.TESTS, pack.tests],
     ];
     for (const [key, records] of additions) {
       const current = storedCollection<{ id: string }>(key) ?? [];
@@ -85,8 +217,10 @@ export function initializeDB(): void {
     }
     // Commit last. If a storage write fails, a later read can finish the pack
     // by ID without replacing records already written or edited by the user.
-    localStorage.setItem(CONTENT_INSTALLATIONS_KEY, JSON.stringify([...installed, DERNIER_RELAIS_CONTENT_ID]));
+    installed.push(pack.id);
+    localStorage.setItem(CONTENT_INSTALLATIONS_KEY, JSON.stringify(installed));
   }
+  applyContentUpgrades();
 }
 
 // Settings
@@ -166,6 +300,7 @@ export interface BackupData {
   timeline: LoreEvent[];
   runs: SimulationRun[];
   contentInstallations?: string[];
+  contentUpgrades?: string[];
 }
 
 export function exportBackupJSON(): string {
@@ -176,7 +311,8 @@ export function exportBackupJSON(): string {
     tests: getTests(),
     timeline: getTimeline(),
     runs: getRuns(),
-    contentInstallations: contentInstallations()
+    contentInstallations: contentInstallations(),
+    contentUpgrades: contentUpgrades()
   };
   return JSON.stringify(backup, null, 2);
 }
@@ -187,6 +323,8 @@ export function importBackupJSON(jsonStr: string): boolean {
     if (backup.settings && backup.campaigns && backup.characters && backup.tests && backup.timeline) {
       if (backup.contentInstallations !== undefined && (!Array.isArray(backup.contentInstallations)
         || !backup.contentInstallations.every(item => typeof item === 'string'))) return false;
+      if (backup.contentUpgrades !== undefined && (!Array.isArray(backup.contentUpgrades)
+        || !backup.contentUpgrades.every(item => typeof item === 'string'))) return false;
       saveSettings(backup.settings);
       saveCampaigns(backup.campaigns);
       saveCharacters(backup.characters);
@@ -196,6 +334,7 @@ export function importBackupJSON(jsonStr: string): boolean {
       // Replace rather than merge: an older backup must receive the new pack,
       // while a newer backup's deliberate deletions must remain deleted.
       localStorage.setItem(CONTENT_INSTALLATIONS_KEY, JSON.stringify(backup.contentInstallations ?? []));
+      localStorage.setItem(CONTENT_UPGRADES_KEY, JSON.stringify(backup.contentUpgrades ?? []));
       initializeDB();
       return true;
     }

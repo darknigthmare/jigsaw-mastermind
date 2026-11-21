@@ -7,6 +7,8 @@ import type { Campaign, SymbolicTest } from '../types';
 import * as db from '../services/db';
 import { PRELOADED_CAMPAIGNS, PRELOADED_TESTS } from '../services/preloadedData';
 import { DERNIER_RELAIS_CONTENT_ID } from '../services/dernierRelaisData';
+import { UNE_DE_MINUIT_CONTENT_ID } from '../services/laUneDeMinuitData';
+import { ROSTER_CONTENT_ID } from '../services/rosterData';
 
 vi.mock('../services/sound', () => ({
   startTapeHum: vi.fn(), stopTapeHum: vi.fn(), playClick: vi.fn(),
@@ -34,7 +36,7 @@ function chapter(id: string, campaignId = 'route-a'): SymbolicTest {
 }
 
 function prepare(campaigns: Campaign[], tests: SymbolicTest[]) {
-  localStorage.setItem(db.CONTENT_INSTALLATIONS_KEY, JSON.stringify([DERNIER_RELAIS_CONTENT_ID]));
+  localStorage.setItem(db.CONTENT_INSTALLATIONS_KEY, JSON.stringify([DERNIER_RELAIS_CONTENT_ID, UNE_DE_MINUIT_CONTENT_ID, ROSTER_CONTENT_ID]));
   db.saveCampaigns(campaigns);
   db.saveTests(tests);
   return renderHook(() => useApp(), { wrapper: ({ children }: { children: ReactNode }) => <AppProvider>{children}</AppProvider> });

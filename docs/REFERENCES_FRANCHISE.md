@@ -21,6 +21,33 @@ Les dates de la table sont celles du catalogue Lionsgate. Pour *Spiral*, l’ann
 | F09 | *Spiral: From the Book of Saw* | 2021 | **Fait** · Zeke Banks et son partenaire enquêtent sur des événements liés au passé de la ville. **Motif** · Appuyer l’enquête sur le regard du personnage, la mémoire d’une institution et la ville. | [Lionsgate · Spiral](https://www.lionsgate.com/movies/spiral?_api=true) |
 | F10 | *Saw X* | 29 septembre 2023 | **Fait** · John Kramer voyage au Mexique, dans un épisode placé entre *Saw* et *Saw II*. **Motif** · Donner au changement de lieu et d’éclairage le rôle de traduire l’espoir, puis la désillusion. | [Lionsgate · Saw X](https://www.lionsgate.com/movies/saw-x?_api=true) |
 
+## Roster jouable · situations transposées
+
+Le Théâtre consacre une salle de lecture à une situation de chaque film (`src/services/rosterData.ts`). Le registre ne décrit ni matériel ni procédure : il fixe la situation de référence, la lecture jouée et le statut de la preuve. Chaque salle affiche sa fiche de fidélité dans l’application.
+
+| Salle | Référence | Lecture jouée | Statut |
+| --- | --- | --- | --- |
+| Le bain | `F01` *Saw* | Registre d’entretien, dalle `C-2`, partage de la clé | **Interprétation** |
+| La maison au gaz | `F02` *Saw II* | Plan de ventilation, 540 m³ à 30 m³/min | **Interprétation** |
+| Le congélateur | `F03` *Saw III* | Chambre froide, 12 °C à −3 °C | **Interprétation** |
+| Le mausolée | `F04` *Saw IV* | Registre funéraire, dernier lundi de février 2031 | **Interprétation** |
+| Le cube d’eau | `F05` *Saw V* | Réservoir de 1 080 L, pompe à 15 L/min | **Interprétation** |
+| Le manège | `F06` *Saw VI* | Grille de six sièges et registre de sélection | **Interprétation** |
+| La cage publique | `F07` *Saw VII* | Relevé de vote, quorum et publication | **Interprétation** |
+| Le silo | `F08` *Jigsaw* | Trois trémies, pesée et bordereau | **Interprétation** |
+| Le faux témoin | `F09` *Spiral* | Référence d’origine et réserve d’archive | **Interprétation** |
+| La machine | `F10` *Saw X* | Compteur de verrous et porte laissée ouverte | **Interprétation** |
+
+**Portée.** Le statut **Interprétation** signifie que la situation est retenue comme motif de conception, pas qu’un plan précis a été relevé. Avant toute publication, chaque salle demande sa fiche de preuve visuelle : édition, timecode ou capture, point de vue et ce que le cadre permet réellement de lire. Aucune ligne ne décrit de geste, d’outil ou de procédure.
+
+**Films fondateurs convertis.** Les treize situations de `F01` et `F02` sont désormais couvertes une par une, avec salle, cassette, énigme et fiche de fidélité : sept salles pour *Saw* (2004) et six pour *Saw II* (2005). La couverture est éditoriale et jouable ; elle ne constitue pas un relevé plan par plan. Les statuts restent **Interprétation** jusqu’à la fiche de preuve visuelle de chaque salle.
+
+**Deuxième passage.** `F03` et `F04` suivent avec douze salles : six pour *Saw III* (2006) et six pour *Saw IV* (2007). Les mêmes limites s’appliquent : situation et dilemme sont joués, aucun geste n’est décrit, et chaque salle attend sa fiche de preuve visuelle.
+
+**Troisième passage.** `F05` à `F07` ajoutent vingt-deux salles : sept pour *Saw V* (2008), sept pour *Saw VI* (2009) et huit pour *Saw VII* (2010). La couverture reste éditoriale ; aucun geste, aucun dispositif et aucune blessure ne sont décrits, et chaque salle attend sa fiche de preuve visuelle.
+
+**Quatrième passage.** `F08` à `F10` ajoutent vingt et une salles : huit pour *Jigsaw* (2017), six pour *Spiral* (2021) et sept pour *Saw X* (2023). La salle de *Saw X* suit son placement dans l’intervalle I–II, sans déplacer le voyage de John Kramer dans l’ordre de sortie. Mêmes limites : situation et dilemme sont joués, aucun geste n’est décrit, et chaque salle attend sa fiche de preuve visuelle.
+
 ## Continuité du récit
 
 Les dates de sortie s’enregistrent avec leur territoire ou leur catalogue. La continuité se documente par relations entre scènes. L’ordre de révélation, le présent du récit et l’événement montré dans un souvenir peuvent recevoir trois repères distincts.

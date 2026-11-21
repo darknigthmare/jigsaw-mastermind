@@ -2,6 +2,8 @@ import type { Campaign, CharacterProfile, SymbolicTest } from '../types';
 import { PRELOADED_CAMPAIGNS, PRELOADED_CHARACTERS, PRELOADED_TESTS } from '../services/preloadedData';
 import * as db from '../services/db';
 import { DERNIER_RELAIS_CONTENT_ID } from '../services/dernierRelaisData';
+import { UNE_DE_MINUIT_CONTENT_ID } from '../services/laUneDeMinuitData';
+import { ROSTER_CONTENT_ID } from '../services/rosterData';
 
 export const originalCampaign: Campaign = {
   ...PRELOADED_CAMPAIGNS[PRELOADED_CAMPAIGNS.length - 1],
@@ -26,7 +28,7 @@ export function originalStage(overrides: Partial<SymbolicTest> = {}): SymbolicTe
   };
 }
 export function seedOriginalStage(test: SymbolicTest): void {
-  localStorage.setItem(db.CONTENT_INSTALLATIONS_KEY, JSON.stringify([DERNIER_RELAIS_CONTENT_ID]));
+  localStorage.setItem(db.CONTENT_INSTALLATIONS_KEY, JSON.stringify([DERNIER_RELAIS_CONTENT_ID, UNE_DE_MINUIT_CONTENT_ID, ROSTER_CONTENT_ID]));
   db.saveCampaigns([originalCampaign]);
   db.saveCharacters([originalSubject]);
   db.saveTests([test]);

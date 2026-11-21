@@ -73,11 +73,15 @@ export interface SymbolicTest {
     items?: string[];
     confessionOptions?: { id: string; text: string; truthScore: number }[];
     gridItems?: { id: string; name: string; score: number }[];
+    /** Optional caption for the coordinate grid, when the room is not a bathroom. */
+    gridLabel?: string;
   };
   clues: string[];
   timerSeconds: number;
   choices: ChoiceBranch[];
   safetyNote: string;
+  /** Documented film reference and the limits of this playable transposition. */
+  sourceNote?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -107,6 +107,33 @@ export const DERNIER_RELAIS_TESTS: SymbolicTest[] = [
   },
 ];
 
+export interface OrionDossierPiece {
+  title: string;
+  body: string;
+  /** Free clue handed to the workshop chapter once the detour is confirmed. */
+  clue: { testId: string; text: string } | null;
+}
+
+const ORION_TEST_ID = 'test-dernier-relais-atelier';
+
+/** What the Relais case file says about the Station workshop detour. It never
+ * replaces the inventory puzzle: a confirmed detour only adds a free clue. */
+export function getOrionDossierPiece(confirmed: boolean): OrionDossierPiece {
+  if (!confirmed) return {
+    title: 'Repère ORION — absent du dossier',
+    body: 'Aucun relevé ORION n’accompagne le dossier des Aulnes. L’atelier de la station de contrôle en conserve un exemplaire : le détour facultatif, registre puis témoin, verse cette pièce au dossier avant l’enquête.',
+    clue: null,
+  };
+  return {
+    title: 'Repère ORION — confirmé à la station',
+    body: 'Le relevé de la station a comparé le registre de l’atelier au témoin : le même repère ORION y figurait deux fois. Inès retrouve cette double mention sur l’étiquette de l’atelier des Aulnes et la tient pour une vérification, pas pour une erreur de saisie. Un indice est versé à l’étape 02, « La caisse de l’atelier ».',
+    clue: {
+      testId: ORION_TEST_ID,
+      text: 'Repère ORION confirmé à la station : l’étiquette du casier porte bien deux mentions, une radio portative et quatre carnets. La double mention vient d’un contrôle, pas d’une faute de saisie.',
+    },
+  };
+}
+
 export function getDernierRelaisEnding(campaignId: string, decisions: DecisionLog[]): EndingDetails | undefined {
   if (campaignId !== DERNIER_RELAIS_CAMPAIGN.id) return undefined;
   const finalChoice = decisions.at(-1)?.choiceId;

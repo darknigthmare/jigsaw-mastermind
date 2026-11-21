@@ -2,16 +2,17 @@ import React from 'react';
 
 interface TimerDisplayProps {
   seconds: number;
+  isFinished?: boolean;
 }
 
-export const TimerDisplay: React.FC<TimerDisplayProps> = ({ seconds }) => {
+export const TimerDisplay: React.FC<TimerDisplayProps> = ({ seconds, isFinished = false }) => {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   
   const formattedMins = mins.toString().padStart(2, '0');
   const formattedSecs = secs.toString().padStart(2, '0');
 
-  const isLowTime = seconds <= 30;
+  const isLowTime = !isFinished && seconds <= 30;
 
   return (
     <div className="flex flex-col items-center justify-center p-4 bg-black border-2 border-terminal-metal rounded-md shadow-inner max-w-[240px] mx-auto select-none">
@@ -32,7 +33,11 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({ seconds }) => {
         <span>{formattedSecs[1]}</span>
       </div>
 
-      {isLowTime && (
+      {isFinished ? (
+        <span className="text-[8px] text-terminal-green-dim font-bold uppercase tracking-widest mt-2">
+          Session terminée
+        </span>
+      ) : isLowTime && (
         <span className="text-[8px] text-terminal-red font-bold uppercase tracking-widest mt-2 animate-pulse">
           WARNING: Chrono Critical
         </span>

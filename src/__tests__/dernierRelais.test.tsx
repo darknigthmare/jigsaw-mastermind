@@ -9,6 +9,8 @@ import { AppProvider, useApp } from '../context/AppContext';
 import { TheatreMode } from '../views/TheatreMode';
 import { PRELOADED_CAMPAIGNS, PRELOADED_TESTS } from '../services/preloadedData';
 import { DERNIER_RELAIS_CAMPAIGN, DERNIER_RELAIS_CHARACTERS, DERNIER_RELAIS_CONTENT_ID, DERNIER_RELAIS_TESTS, getDernierRelaisEnding } from '../services/dernierRelaisData';
+import { UNE_DE_MINUIT_CAMPAIGN, UNE_DE_MINUIT_CHARACTERS, UNE_DE_MINUIT_CONTENT_ID, UNE_DE_MINUIT_TESTS } from '../services/laUneDeMinuitData';
+import { ROSTER_CAMPAIGN, ROSTER_CHARACTERS, ROSTER_CONTENT_ID, ROSTER_TESTS } from '../services/rosterData';
 import { INITIAL_MORAL_SCORES } from '../services/moralEngine';
 import { getPuzzleControl, isPuzzleAnswerCorrect, resolveCampaignTests } from '../services/simulationRules';
 
@@ -42,21 +44,21 @@ describe('Le Dernier Relais: additive delivery', () => {
     expect(localStorage.getItem('jigsaw_active_sim')).toBe('old snapshot bytes');
     localStorage.removeItem('jigsaw_active_sim');
     const { result } = appHook();
-    expect(result.current.campaigns.map(campaign => campaign.id)).toEqual([oldCampaign.id, DERNIER_RELAIS_CAMPAIGN.id]);
+    expect(result.current.campaigns.map(campaign => campaign.id)).toEqual([oldCampaign.id, DERNIER_RELAIS_CAMPAIGN.id, UNE_DE_MINUIT_CAMPAIGN.id, ROSTER_CAMPAIGN.id]);
     expect(result.current.campaigns[0]).toEqual(oldCampaign);
     expect(result.current.tests[0]).toEqual(oldTest);
-    expect(result.current.tests).toHaveLength(4);
-    expect(result.current.characters).toEqual(DERNIER_RELAIS_CHARACTERS);
-    expect(db.getCampaigns()).toHaveLength(2);
-    expect(db.getTests()).toHaveLength(4);
-    expect(JSON.parse(localStorage.getItem(db.CONTENT_INSTALLATIONS_KEY)!)).toEqual([DERNIER_RELAIS_CONTENT_ID]);
+    expect(result.current.tests).toHaveLength(17);
+    expect(result.current.characters).toEqual([...DERNIER_RELAIS_CHARACTERS, ...UNE_DE_MINUIT_CHARACTERS, ...ROSTER_CHARACTERS]);
+    expect(db.getCampaigns()).toHaveLength(4);
+    expect(db.getTests()).toHaveLength(17);
+    expect(JSON.parse(localStorage.getItem(db.CONTENT_INSTALLATIONS_KEY)!)).toEqual([DERNIER_RELAIS_CONTENT_ID, UNE_DE_MINUIT_CONTENT_ID, ROSTER_CONTENT_ID]);
   });
 
   it('does not confuse freshly filled missing lists with a pack installed in an old partial library', () => {
     db.saveCampaigns([]);
     db.saveTests([]);
-    expect(db.getCampaigns()).toEqual([DERNIER_RELAIS_CAMPAIGN]);
-    expect(db.getTests()).toEqual(DERNIER_RELAIS_TESTS);
+    expect(db.getCampaigns()).toEqual([DERNIER_RELAIS_CAMPAIGN, UNE_DE_MINUIT_CAMPAIGN, ROSTER_CAMPAIGN]);
+    expect(db.getTests()).toEqual([...DERNIER_RELAIS_TESTS, ...UNE_DE_MINUIT_TESTS, ...ROSTER_TESTS]);
     expect(db.getCharacters().filter(character => character.id.startsWith('char-dernier-relais-'))).toEqual(DERNIER_RELAIS_CHARACTERS);
   });
 
@@ -116,7 +118,7 @@ describe('Le Dernier Relais: additive delivery', () => {
     };
     db.initializeDB();
     expect(db.importBackupJSON(JSON.stringify(backup))).toBe(true);
-    expect(db.getCampaigns().map(campaign => campaign.id)).toEqual([backup.campaigns[0].id, DERNIER_RELAIS_CAMPAIGN.id]);
+    expect(db.getCampaigns().map(campaign => campaign.id)).toEqual([backup.campaigns[0].id, DERNIER_RELAIS_CAMPAIGN.id, UNE_DE_MINUIT_CAMPAIGN.id, ROSTER_CAMPAIGN.id]);
     expect(db.getTests()[0]).toEqual(backup.tests[0]);
   });
 

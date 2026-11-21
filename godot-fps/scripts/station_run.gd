@@ -7,6 +7,9 @@ const Player = preload("res://scripts/station_player.gd")
 const INTERACTION_RANGE: float = 2.7
 const AIM_ALIGNMENT: float = 0.91
 const CHALLENGE_DURATION: float = 180.0
+# Short embeds (including the page iframe) must not let the HUD cover a
+# pupitre the player is reading. Below this height the cards collapse.
+const COMPACT_HEIGHT: float = 720.0
 const OBJECTIVES: Array[String] = ["BADGE", "RELAIS", "INDEX", "PROTOCOLE", "SORTIE"]
 enum Gate { GALLERY, ARCHIVES, WORKSHOP, EVACUATION }
 
@@ -100,11 +103,15 @@ func _process(delta: float) -> void:
 	_toast.visible = _toast_left > 0.0 and not _compact_hud
 	if toast_was_visible and not _toast.visible:
 		_queue_hud_fit()
+	var hud_alpha: float = _hud_alpha()
+	if is_instance_valid(_hud) and not is_equal_approx(_hud.modulate.a, hud_alpha):
+		_hud.modulate = Color(1, 1, 1, hud_alpha)
 	var terminal: Dictionary = _find_target()
 	var next_focus: String = str(terminal.get("id", ""))
 	if next_focus != _focus_id:
 		_focus_id = next_focus
 		_refresh_terminals()
+		_apply_hud_focus()
 	_interact_button.disabled = terminal.is_empty()
 	if _compact_hud and _toast_left > 0.0 and not _compact_feedback.is_empty():
 		_prompt.text = _compact_feedback
@@ -575,7 +582,7 @@ func _fit_ui() -> void:
 	var width: float = viewport_size.x
 	var narrow: bool = width < 760
 	var short_dialog: bool = viewport_size.y < 420.0
-	_compact_hud = narrow or viewport_size.y < 560.0
+	_compact_hud = narrow or viewport_size.y < COMPACT_HEIGHT
 	var hud_width := minf(440.0 if _compact_hud else 610.0, width - 40.0)
 	_hud.size.x = hud_width
 	_hud_panel.custom_minimum_size.x = hud_width
@@ -600,7 +607,25 @@ func _fit_ui() -> void:
 	if not _started:
 		_modal_body.text = "ZQSD / WASD · Marcher\nSouris ou flèches · Regarder\nE · Examiner     P · Pause\nTactile · Gauche pour marcher, droite pour regarder." if narrow else "Badge, relais, index, protocole puis sortie.\n\nZQSD / WASD · Marcher   Souris ou flèches · Regarder\nE · Examiner   P ou Échap · Pause\nTactile · Glisser à gauche pour marcher, à droite pour regarder."
 	_refresh_progress()
+	_apply_hud_focus()
 	_queue_hud_fit()
+
+
+func _hud_alpha() -> float:
+	# A confirmation toast must stay legible: while one is on screen the HUD
+	# keeps full opacity, even if a pupitre is still aimed at. The fade comes
+	# back on its own once the toast expires.
+	if _toast_left > 0.0 or _focus_id.is_empty():
+		return 1.0
+	return 0.12
+
+
+func _apply_hud_focus() -> void:
+	# The HUD is an overlay, not a wall. When a terminal is aimed at, fade it
+	# so the left-hand screens (badge, relays, index, protocol) stay readable.
+	if not is_instance_valid(_hud):
+		return
+	_hud.modulate = Color(1, 1, 1, _hud_alpha())
 
 
 func _queue_hud_fit() -> void:
@@ -656,6 +681,7 @@ func _show_toast(text: String, duration: float = 4.5, compact_text: String = "")
 	_compact_feedback = compact_text
 	_toast_left = duration
 	_toast.visible = not _compact_hud
+	_apply_hud_focus()
 	_queue_hud_fit()
 
 
@@ -756,6 +782,8 @@ func _reset_run(begin: bool) -> void:
 	_focus_id = ""
 	_toast_left = 0.0
 	_compact_feedback = ""
+	if is_instance_valid(_hud):
+		_hud.modulate = Color.WHITE
 	_toast.visible = false
 	_hud_title.text = "STATION · DÉFI" if _timed else "STATION DE CONTRÔLE"
 	_refresh_clock()

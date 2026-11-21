@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, CheckCircle2, Expand, Keyboard, LoaderCircle, RotateCcw, ScanLine, Smartphone } from 'lucide-react';
 import { initialStationProgress, updateStationProgress } from '../services/stationProgress';
+import { recordOrionConfirmed } from '../services/orionMarker';
+import { clearStationSession, readStationSession, saveStationSession, toStationSession, type StationSession } from '../services/stationSession';
 import { StationPlan } from './StationPlan';
 import './StationMode.css';
 
@@ -17,6 +19,7 @@ export function StationMode({ onExit }: StationModeProps) {
   const [status, setStatus] = useState<StationStatus>('loading');
   const [documentLoaded, setDocumentLoaded] = useState(false);
   const [progress, setProgress] = useState(initialStationProgress);
+  const [session, setSession] = useState<StationSession | null>(readStationSession);
   const [fullscreenNotice, setFullscreenNotice] = useState('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const viewRef = useRef<HTMLElement>(null);
@@ -58,7 +61,24 @@ export function StationMode({ onExit }: StationModeProps) {
     };
   }, [attempt]);
 
+  useEffect(() => {
+    // The workshop detour outlives the iframe; Le Dernier Relais reads it as a
+    // dossier piece. Only the completed diagnostic (register then witness) counts.
+    if (progress.workshop === 'open') recordOrionConfirmed();
+  }, [progress.workshop]);
+
+  useEffect(() => {
+    // Keep the report, not the room state: a reload must say what the last
+    // crossing achieved instead of silently starting from zero.
+    const saved = toStationSession(progress);
+    if (!saved) return;
+    saveStationSession(saved);
+    setSession(saved);
+  }, [progress]);
+
   const restart = () => {
+    clearStationSession();
+    setSession(null);
     setStatus('loading');
     setDocumentLoaded(false);
     setProgress(initialStationProgress);
@@ -82,6 +102,9 @@ export function StationMode({ onExit }: StationModeProps) {
       setFullscreenNotice('Le plein écran n’a pas pu s’ouvrir. Vous pouvez jouer dans cette fenêtre.');
     }
   };
+
+  const lastRun = session && !progress.started ? session : null;
+  const lastRunMoment = lastRun ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(lastRun.recordedAt)) : '';
 
   const statusText = status === 'ready' ? 'Station prête'
     : status === 'error' ? 'Ouverture impossible'
@@ -112,6 +135,15 @@ export function StationMode({ onExit }: StationModeProps) {
         <span className="station-mode-badge">{progress.mode === 'defi' ? 'Défi · 3 min' : progress.mode === 'visite' ? 'Visite · sans limite de temps' : 'Visite ou défi · choisissez dans la station'}</span>
         <span>{progress.mode === 'defi' ? 'Validez les cinq objectifs avant la fin du temps imparti.' : 'Explorez quatre espaces, avec un détour facultatif par l’atelier.'}</span>
       </div>
+
+      {lastRun && <section className="station-last-session" aria-labelledby="station-last-session-heading">
+        <div>
+          <span className="station-eyebrow">DERNIÈRE TRAVERSÉE</span>
+          <h2 id="station-last-session-heading">{lastRun.status === 'sortie-validee' ? 'Sortie validée' : lastRun.status === 'delai-expire' ? 'Délai écoulé' : 'Traversée interrompue'}</h2>
+          <p>{`${lastRun.mode === 'defi' ? 'Défi · 3 min' : 'Visite'} · ${lastRun.completed} / 5 objectifs · ${lastRunMoment}. Seul ce bilan est conservé : la position et l’état des portes ne le sont pas, une nouvelle traversée repart du sas.`}</p>
+        </div>
+        <button className="station-secondary-button" onClick={restart}>Nouvelle traversée</button>
+      </section>}
 
       <div className="station-stage" aria-busy={status === 'loading' || status === 'delayed'}>
         <iframe
