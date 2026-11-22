@@ -70,15 +70,42 @@ export function resolveCampaignTests(campaign: CampaignSequence, tests: Symbolic
   return selected.length ? selected : [...owned.values()];
 }
 
-/** Read only the complete, explicit slider instructions used by older saves. */
+function sliderAmount(raw: string | undefined): number | undefined {
+  if (!raw) return undefined;
+  const value = Number(raw.replaceAll(/[ ,\u00a0\u202f]/g, ''));
+  return Number.isFinite(value) ? value : undefined;
+}
+
+/** Read only the complete, explicit slider instructions used by older saves,
+ * in the shipped English form and in its French equivalent. */
 function legacySacrificeThreshold(rules: string): { value: number; inclusive: boolean } | undefined {
-  const amount = '((?:\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d+)?)';
-  const slider = '^(?:set|adjust|move)\\s+(?:the\\s+)?(?:(?:balance|scale)\\s+)?slider\\s+(?:to\\s+)?';
-  const prefix = rules.trim().match(new RegExp(`${slider}(at least|past)\\s+\\$?\\s*${amount}\\s*\\.?$`, 'i'));
-  const suffix = rules.trim().match(new RegExp(`${slider}\\$?\\s*${amount}\\s+or above\\s*\\.?$`, 'i'));
-  if (!prefix && !suffix) return undefined;
-  const value = Number((prefix ? prefix[2] : suffix![1]).replaceAll(',', ''));
-  return Number.isFinite(value) ? { value, inclusive: !prefix || prefix[1].toLowerCase() === 'at least' } : undefined;
+  const text = rules.trim();
+  const amount = '((?:\\d{1,3}(?:[ ,\\u00a0\\u202f]\\d{3})+|\\d+)(?:\\.\\d+)?)';
+  const money = '(?:\\s*(?:\\$|dollars?|euros?))?';
+  const englishSlider = '^(?:set|adjust|move)\\s+(?:the\\s+)?(?:(?:balance|scale)\\s+)?slider\\s+(?:to\\s+)?';
+  const frenchSlider = '^(?:réglez|reglez|ajustez|placez|mettez)\\s+(?:le\\s+|la\\s+)?curseur(?:\\s+de\\s+(?:la\\s+)?(?:balance|échelle))?\\s+(?:à\\s+)?';
+
+  const englishPrefix = text.match(new RegExp(`${englishSlider}(at least|past)\\s+\\$?\\s*${amount}${money}\\s*\\.?$`, 'i'));
+  if (englishPrefix) {
+    const value = sliderAmount(englishPrefix[2]);
+    return value === undefined ? undefined : { value, inclusive: englishPrefix[1].toLowerCase() === 'at least' };
+  }
+  const englishSuffix = text.match(new RegExp(`${englishSlider}\\$?\\s*${amount}${money}\\s+or above\\s*\\.?$`, 'i'));
+  if (englishSuffix) {
+    const value = sliderAmount(englishSuffix[1]);
+    return value === undefined ? undefined : { value, inclusive: true };
+  }
+  const frenchPrefix = text.match(new RegExp(`${frenchSlider}(au moins|au minimum|plus de|à partir de)\\s*(?:à\\s+)?\\$?\\s*${amount}${money}\\s*\\.?$`, 'i'));
+  if (frenchPrefix) {
+    const value = sliderAmount(frenchPrefix[2]);
+    return value === undefined ? undefined : { value, inclusive: frenchPrefix[1].toLowerCase() !== 'plus de' };
+  }
+  const frenchSuffix = text.match(new RegExp(`${frenchSlider}\\$?\\s*${amount}${money}\\s+(?:ou plus|au minimum|minimum)\\s*\\.?$`, 'i'));
+  if (frenchSuffix) {
+    const value = sliderAmount(frenchSuffix[1]);
+    return value === undefined ? undefined : { value, inclusive: true };
+  }
+  return undefined;
 }
 
 /** Explicit answers win over the narrowly supported historical puzzle rules. */

@@ -153,7 +153,7 @@ Le [registre des références](REFERENCES_FRANCHISE.md) couvre les dix films et 
 | Ensemble | Contenu | Source de vérité |
 | --- | --- | --- |
 | Bibliothèque du Théâtre | 14 campagnes, 87 épreuves, 29 dossiers, 8 entrées de chronologie. Dix campagnes sont indexées par film, quatre sont originales. | `src/services/preloadedData.ts` |
-| Décors du Théâtre | Soixante-six salles dédiées ; les autres épreuves emploient cinq environnements partagés selon leur famille d’énigme. | `src/components/common/TheatreScene.tsx`, `theatreWorkspaceData.ts` |
+| Décors du Théâtre | Quatre-vingt-sept salles dédiées, une par épreuve ; cinq environnements partagés restent le repli d’une épreuve créée par le joueur. | `src/components/common/TheatreScene.tsx`, `theatreWorkspaceData.ts` |
 | Station FPS | Une carte Godot avec quatre espaces principaux, un atelier facultatif, onze pupitres et quatre portes. | `godot-fps/station.tscn`, `station_layout.gd`, `station_run.gd` |
 | Campagne de référence | *Le Dernier Relais* : trois salles, trois épreuves, trois issues. | `src/services/dernierRelaisData.ts` |
 | Seconde campagne originale | *La Une de minuit* : trois salles illustrées, trois épreuves, trois issues. | `src/services/laUneDeMinuitData.ts` |
@@ -162,6 +162,7 @@ Le [registre des références](REFERENCES_FRANCHISE.md) couvre les dix films et 
 | Deuxième passage | *Saw III Trials* et *Saw IV Trials* : douze situations converties au même gabarit. | `src/services/sawThreeFourData.ts` |
 | Troisième passage | *Saw V Trials*, *Saw VI Trials* et *Saw VII Trials* : vingt-deux situations converties. | `src/services/sawFiveSevenData.ts` |
 | Quatrième passage | *Jigsaw*, *Spiral* et *Saw X* : vingt et une situations converties au même gabarit. | `src/services/sawLegacyData.ts` |
+| Cinquième passage | Campagne fictive *Gideon* : les trois entrées originales de Victor Hale, Mara Voss et Elias Crowe converties en salles de lecture. | `src/services/fictionalArchitectData.ts` |
 | Archives | Deux jeux officiels dans le registre documentaire. | `REFERENCES_FRANCHISE.md` |
 
 Les quantités décrivent la bibliothèque fournie avec cette révision. Les ajouts, suppressions et sauvegardes du joueur peuvent faire varier son contenu local.
@@ -438,7 +439,7 @@ Le dépôt des épreuves réunit dix salles de lecture, une par film. Chaque sal
 - Une partie reprise conserve le contenu instantané qu’elle avait chargé.
 - Une ancienne sauvegarde reste lisible ; les suppressions choisies sont préservées.
 
-### 6.9 Migration film par film — *Saw I* à *Saw X*
+### 6.9 Migration film par film — *Saw I* à *Saw X*, puis les trois entrées fictives
 
 Les deux films fondateurs passent les premiers de la formule « salle illustrée, cassette, énigme, fiche de fidélité ». Les treize entrées anglaises d’une ligne sont remplacées à identifiant constant ; les campagnes `camp-saw-i` et `camp-saw-ii` gardent leur ordre et leurs dossiers, mais chaque étape devient une lecture de la situation documentée.
 
@@ -457,11 +458,13 @@ Les deux films fondateurs passent les premiers de la formule « salle illustrée
 
 **Deuxième, troisième et quatrième passages.** *Saw III* et *Saw IV* suivent avec six salles chacun ; *Saw V*, *Saw VI* et *Saw VII* ajoutent vingt-deux salles, puis *Jigsaw*, *Spiral* et *Saw X* vingt et une. Même gabarit, mêmes contrôles, mêmes fiches de fidélité, et une migration unique par film limitée aux titres d’origine.
 
+**Cinquième passage — les entrées fictives.** La campagne *Gideon* ferme la bibliothèque. Les trois épreuves originales (`test-ledger-room-1`, `test-glass-confession-1`, `test-quiet-scale-1`) deviennent *Le bureau des registres*, *La salle des miroirs* et *La salle de la balance* : trois décors dédiés, trois cassettes, trois énigmes sur les contrôles existants (date `2024-03-22`, confession `B-2`, curseur `150000`) et trois fiches de fidélité. Ces salles ne renvoient à aucun film : leur fiche commence par « Fiction originale » et borne la situation au bâtiment Gideon. Les identifiants, les sujets et leurs fautes sont conservés ; le joueur reçoit la réécriture une seule fois, et seulement si l’entrée porte encore son titre d’origine. L’instruction du curseur est écrite en français ; le moteur continue de lire la formulation anglaise d’origine et comprend désormais « à … ou plus », « au moins », « au minimum », « à partir de » et « plus de », ce qui maintient le seuil de 150 000 $ des anciennes sauvegardes.
+
 **Ce qui disparaît.** Les textes qui décrivaient un geste, un outil ou une blessure sont retirés du contenu préchargé ; le filtre de sécurité est passé sur chaque cassette, règle, indice, choix et fiche. Les salles ne montrent ni ne décrivent d’exécution. Une bibliothèque existante reçoit la réécriture une seule fois, uniquement pour les entrées qui portent encore leur titre d’origine : une étape éditée par le joueur n’est jamais remplacée.
 
 **Ce qui reste.** La situation, le lieu, la faute du sujet et le dilemme. Chaque salle porte sa fiche de fidélité (`sourceNote`) avec la référence au film et la mention des éléments non reproduits. Les issues restent calculées par le moteur moral, la dernière décision de chaque campagne déclenchant le bilan.
 
-**Ordre de la suite.** *Jigsaw* (huit situations), *Spiral* (six) et *Saw X* (sept), puis les trois entrées fictives. Chaque film demande : une salle par situation, une cassette, une énigme sur un contrôle existant, deux choix et une fiche de fidélité. Un film n’est déclaré converti que lorsque ses identifiants sont tous couverts et que le parcours complet passe.
+**Ordre de la suite.** La conversion est terminée : *Jigsaw* (huit situations), *Spiral* (six), *Saw X* (sept), puis les trois entrées fictives. Chaque salle demande une cassette, une énigme sur un contrôle existant, deux choix et une fiche de fidélité. Une campagne n’est déclarée convertie que lorsque ses identifiants sont tous couverts et que le parcours complet passe ; les sept campagnes filmiques et la campagne *Gideon* remplissent cette condition.
 
 ---
 
@@ -735,8 +738,8 @@ npm run station:export
 | Dossier Web Godot | 38,21 Mo |
 | WASM | 37,70 Mo |
 | PCK | 80 392 octets |
-| Illustrations du Théâtre | 12 Mo (8 WebP, 80 JPEG) |
-| Tests web | 139 |
+| Illustrations du Théâtre | 13 Mo (8 WebP, 83 JPEG) |
+| Tests web | 149 |
 | Contrôles natifs Godot | 86 |
 
 Les temps de frame et la mémoire graphique demandent des relevés sur appareil identifié. Les tailles sont des valeurs brutes de build ; le transfert dépend de la compression serveur.
@@ -873,7 +876,7 @@ npm run build
 npm run station:test
 ```
 
-Sur la base `86280ba`, avec le correctif HUD local non commité, les vérifications du 21 novembre 2026 donnent **139 tests web** et **86 contrôles natifs Godot**. Le PCK final mesure 80 392 octets et porte l’empreinte SHA-256 `f3f9621c5df9007ae692249517a8dc1f54da3b094cc9bc8900f98a4b9faa11f1`. `npm run lint` retourne 0 erreur et 5 avertissements ; `npm run build` produit un bundle de 699,21 kB (186,73 kB gzip).
+Sur la base `8641af1`, les vérifications du 22 novembre 2026 donnent **149 tests web** et **86 contrôles natifs Godot**. Le PCK final mesure 80 392 octets et porte l’empreinte SHA-256 `f3f9621c5df9007ae692249517a8dc1f54da3b094cc9bc8900f98a4b9faa11f1`. `npm run lint` retourne 0 erreur et 5 avertissements ; `npm run build` produit un bundle de 704,04 kB (187,52 kB gzip).
 
 Le setup `src/test/setup.ts` fournit un `Storage` mémoire quand Node 26 n’expose pas `localStorage` dans l’environnement jsdom. Il ne modifie pas l’application ; il permet aux tests de sauvegarde, de reprise et de chiffrement de s’exécuter.
 
@@ -894,7 +897,7 @@ Le setup `src/test/setup.ts` fournit un `Storage` mémoire quand Node 26 n’exp
 | ID | Sujet | Critère |
 | --- | --- | --- |
 | P0-01 | Aligner la branche de travail sur `master` (`86280ba`) | **Fait** : fast-forward effectué le 21/11/2026 |
-| P0-02 | Rejouer `npm test`, `npm run lint`, `npm run build`, `npm run station:test` | **Fait** : 139 tests, 0 erreur lint, build OK, 86 contrôles Godot |
+| P0-02 | Rejouer `npm test`, `npm run lint`, `npm run build`, `npm run station:test` | **Fait** : 149 tests, 0 erreur lint, build OK, 86 contrôles Godot |
 | P0-03 | Vérifier le parcours *Le Dernier Relais* de bout en bout | Tests automatisés OK ; parcours navigateur à refaire |
 | P0-04 | Vérifier la Station en visite et en défi | Tests natifs OK ; parcours navigateur à refaire |
 | P0-05 | Corriger les limites connues de sauvegarde/reprise | **Fait** : bilan conservé et annoncé, reprise explicite du sas |
@@ -906,7 +909,7 @@ Le setup `src/test/setup.ts` fournit un `Storage` mémoire quand Node 26 n’exp
 | P1-01 | Accessibilité complète | Clavier, manette, tactile, sous-titres, contraste |
 | P1-02 | Localisation FR/EN | Aucun texte en dur |
 | P1-03 | Nouvelles campagnes originales | **En cours** : 2 / 3 livrées (*La Une de minuit*, *Le Roster — dix pièges*) |
-| P1-04 | Nouvelles salles dédiées | **Fait** : trois salles pour *La Une de minuit*, dix pour *Le Roster*, treize pour *Saw I* et *Saw II*, douze pour *Saw III* et *Saw IV*, vingt-deux pour *Saw V* à *Saw VII*, vingt et une pour *Jigsaw*, *Spiral* et *Saw X* |
+| P1-04 | Nouvelles salles dédiées | **Fait** : trois salles pour *La Une de minuit*, dix pour *Le Roster*, treize pour *Saw I* et *Saw II*, douze pour *Saw III* et *Saw IV*, vingt-deux pour *Saw V* à *Saw VII*, vingt et une pour *Jigsaw*, *Spiral* et *Saw X*, trois pour les entrées fictives |
 | P1-05 | Optimisation Web Godot | Budget de transfert et temps de frame mesurés |
 | P1-06 | Sauvegarde de la Station | **Fait** : bilan persistant, reprise explicite |
 | P1-07 | Registre d’assets complet | Source, licence, empreinte |
@@ -996,6 +999,7 @@ Le setup `src/test/setup.ts` fournit un `Storage` mémoire quand Node 26 n’exp
 | `src/services/sawThreeFourData.ts` | Douze situations de *Saw III* et *Saw IV* réécrites en salles de lecture |
 | `src/services/sawFiveSevenData.ts` | Vingt-deux situations de *Saw V* à *Saw VII* réécrites en salles de lecture |
 | `src/services/sawLegacyData.ts` | Vingt et une situations de *Jigsaw*, *Spiral* et *Saw X* réécrites en salles de lecture |
+| `src/services/fictionalArchitectData.ts` | Trois entrées fictives de la campagne *Gideon* réécrites en salles de lecture, avec leurs fiches de fidélité |
 | `src/services/moralEngine.ts` | Sept axes et fins |
 | `src/services/db.ts` | Stockage local, migration, chiffrement |
 | `src/test/setup.ts` | `Storage` mémoire pour les tests sous Node 26 |

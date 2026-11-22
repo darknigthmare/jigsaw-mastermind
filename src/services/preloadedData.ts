@@ -6,6 +6,7 @@ import { SAW_ONE_TWO_TESTS } from './sawOneTwoData';
 import { SAW_THREE_FOUR_TESTS } from './sawThreeFourData';
 import { SAW_FIVE_SEVEN_TESTS } from './sawFiveSevenData';
 import { SAW_LEGACY_TESTS } from './sawLegacyData';
+import { FICTIONAL_ARCHITECT_TESTS } from './fictionalArchitectData';
 
 export const PRELOADED_CHARACTERS: CharacterProfile[] = [
   {
@@ -463,76 +464,7 @@ export const PRELOADED_CAMPAIGNS: Campaign[] = [
 
 export const PRELOADED_TESTS: SymbolicTest[] = [
   // Fictional Campaign Tests
-  {
-    id: 'test-ledger-room-1',
-    campaignId: 'camp-fictional-architect',
-    characterId: 'char-victor-hale',
-    title: 'The Ledger Calibration',
-    moralTheme: 'Truth vs. Reputation',
-    openingTape: 'Hello, Victor. You protected developers to secure your career at Gideon. Submit the signature override date 2024-04-12 on the terminal to confession and exit.',
-    rules: 'Enter the date "2024-04-12" to unlock Option A.',
-    puzzleType: 'logic',
-    puzzleData: {
-      question: 'Enter the manual override date (YYYY-MM-DD):',
-      correctAnswer: '2024-04-12'
-    },
-    clues: ['The signature occurred on 2024-04-12.'],
-    timerSeconds: 120,
-    choices: [
-      { id: 'choice-vic-confess', text: 'Select File #BConfess', scoresEffect: { truth: 30, responsibility: 30 }, narrativeImpact: 'Confession files printed and dispatched to regulatory agencies.' },
-      { id: 'choice-vic-lie', text: 'Select File #C Lie', scoresEffect: { denial: 35 }, narrativeImpact: 'Safety violation logs purged, maintaining the cover-up.' }
-    ],
-    safetyNote: 'Fictional test lock.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'test-glass-confession-1',
-    campaignId: 'camp-fictional-architect',
-    characterId: 'char-mara-voss',
-    title: 'The Reflection of Deceit',
-    moralTheme: 'Social Image vs. Responsibility',
-    openingTape: 'Mara. Behind Mirror B-2 is the real report. Click B-2 to confess.',
-    rules: 'Select B-2 in the confession grid.',
-    puzzleType: 'confession',
-    puzzleData: {
-      question: 'Select the mirror that details the cover-up:',
-      confessionOptions: [
-        { id: 'A-1', text: 'Deflect blame', truthScore: 10 },
-        { id: 'B-2', text: 'Admit August 2025 short-circuit hazard prior knowledge', truthScore: 90 },
-        { id: 'C-3', text: 'Deflect suppliers', truthScore: 20 }
-      ]
-    },
-    clues: ['August 2025 report is B-2.'],
-    timerSeconds: 120,
-    choices: [
-      { id: 'choice-m-c', text: 'Select B-2 Confess', scoresEffect: { truth: 30 }, narrativeImpact: 'Mara broadcasts the corporate warning notes, ending her career but saving lives.' },
-      { id: 'choice-m-d', text: 'Select C-3 Deflect', scoresEffect: { denial: 30 }, narrativeImpact: 'Mara blames subcontractors, sealing the whistleblowers\' fate.' }
-    ],
-    safetyNote: 'Fictional test.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'test-quiet-scale-1',
-    campaignId: 'camp-fictional-architect',
-    characterId: 'char-elias-crowe',
-    title: 'The Balance of Ledger',
-    moralTheme: 'Exploitation vs. Empathy',
-    openingTape: 'Elias. Adjust the slider to allocate at least $150,000 of your bonus to the workers compensation fund.',
-    rules: 'Set the balance slider to $150,000 or above.',
-    puzzleType: 'sacrifice',
-    puzzleData: { question: 'Transfer from Bonus to Workers Fund ($250,000 max):' },
-    clues: ['Slide past $150,000.'],
-    timerSeconds: 120,
-    choices: [
-      { id: 'choice-el-g', text: 'Transfer $180,000 to Workers', scoresEffect: { empathy: 30 }, narrativeImpact: 'Elias Crowe signs the fund allocation. The scales balance.' },
-      { id: 'choice-el-k', text: 'Keep cash (Forces failure)', scoresEffect: { denial: 35 }, narrativeImpact: 'Elias keeps his bonus. The weights tilt and lock the vault forever.' }
-    ],
-    safetyNote: 'Fictional test.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
+  // The Gideon campaign is delivered by fictionalArchitectData.ts.
 
   // Saw I Trials
 
@@ -549,6 +481,7 @@ export const PRELOADED_TESTS: SymbolicTest[] = [
   // Saw VII Trials
 
   // Jigsaw (2017), Spiral (2021) and Saw X are delivered by sawLegacyData.ts.
+  ...FICTIONAL_ARCHITECT_TESTS,
   ...DERNIER_RELAIS_TESTS,
   ...UNE_DE_MINUIT_TESTS,
   ...ROSTER_TESTS,

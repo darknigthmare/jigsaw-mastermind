@@ -12,6 +12,7 @@ import { SAW_ONE_TWO_TESTS } from './sawOneTwoData';
 import { SAW_THREE_FOUR_TESTS } from './sawThreeFourData';
 import { SAW_FIVE_SEVEN_TESTS } from './sawFiveSevenData';
 import { SAW_LEGACY_TESTS } from './sawLegacyData';
+import { FICTIONAL_ARCHITECT_TESTS } from './fictionalArchitectData';
 
 export const CONTENT_INSTALLATIONS_KEY = 'jigsaw_content_installed';
 export const CONTENT_UPGRADES_KEY = 'jigsaw_content_upgraded';
@@ -100,6 +101,11 @@ const CONTENT_UPGRADES: ContentUpgrade[] = [
     'test-sx-bone-crusher': "Gabriela's Radiation Gasket",
     'test-sx-blood-pit': 'Blood Pit Coordinates',
     'test-sx-gas-room': 'Poison Gas Room',
+  } },
+  { id: 'fictional-architect-rewrite-v1', replacements: FICTIONAL_ARCHITECT_TESTS, legacyTitles: {
+    'test-ledger-room-1': 'The Ledger Calibration',
+    'test-glass-confession-1': 'The Reflection of Deceit',
+    'test-quiet-scale-1': 'The Balance of Ledger',
   } },
 ];
 

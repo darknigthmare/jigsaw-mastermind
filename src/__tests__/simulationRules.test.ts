@@ -130,6 +130,30 @@ describe('historical sacrifice slider instructions', () => {
     expect(isPuzzleAnswerCorrect(test, String(Number(threshold) + 1))).toBe(true);
   });
 
+  it.each([
+    'Réglez le curseur de la balance à 150 000 $ ou plus.',
+    'Réglez le curseur au moins à 150 000 $.',
+    'Ajustez le curseur à 150 000 $ au minimum.',
+  ])('reads this French slider instruction as an inclusive threshold: %s', rules => {
+    const test = { puzzleType: 'sacrifice' as const, puzzleData: {}, rules };
+    expect(getPuzzleControl(test)).toEqual({ kind: 'scale', max: 250000 });
+    expect(isPuzzleAnswerCorrect(test, '150000')).toBe(true);
+    expect(isPuzzleAnswerCorrect(test, '180000')).toBe(true);
+    expect(isPuzzleAnswerCorrect(test, '149999')).toBe(false);
+  });
+
+  it('keeps the strict reading of a French instruction that asks for more than the amount', () => {
+    const test = { puzzleType: 'sacrifice' as const, puzzleData: {}, rules: 'Ajustez le curseur à plus de 80 000 $.' };
+    expect(isPuzzleAnswerCorrect(test, '80000')).toBe(false);
+    expect(isPuzzleAnswerCorrect(test, '80001')).toBe(true);
+  });
+
+  it('does not read a French sentence that is not a complete slider instruction', () => {
+    const test = { puzzleType: 'sacrifice' as const, puzzleData: {}, rules: 'Réglez le curseur à une valeur sûre.' };
+    expect(getPuzzleControl(test).kind).toBe('answer');
+    expect(isPuzzleAnswerCorrect(test, '150000')).toBe(false);
+  });
+
   it('requires strictly more than the amount when the rule says past', () => {
     const test = { puzzleType: 'sacrifice' as const, puzzleData: {}, rules: 'Set slider past $80,000.' };
     expect(isPuzzleAnswerCorrect(test, '80000')).toBe(false);
